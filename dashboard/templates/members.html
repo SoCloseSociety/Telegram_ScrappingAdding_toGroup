@@ -15,7 +15,14 @@
     <div class="card p-5">
       <div class="text-sm font-semibold text-white mb-4">🕵️ Scraper un groupe</div>
       <form method="post" action="/members/scrape" class="form-row">
-        <div><label>Groupe</label><input type="text" name="group" required placeholder="@username ou lien"></div>
+        <div><label>Groupe</label>
+          {% if groups %}
+          <select name="group" required>
+            <option value="">— Sélectionner —</option>
+            {% for g in groups %}<option value="{% if g.username %}@{{ g.username }}{% else %}{{ g.id }}{% endif %}">{% if g.creator %}👑{% elif g.admin %}⭐{% else %}👤{% endif %} {{ g.title }} ({{ g.members or '?' }})</option>{% endfor %}
+          </select>
+          {% else %}<input type="text" name="group" required placeholder="@username ou lien">{% endif %}
+        </div>
         <div class="flex items-center gap-2">
           <input type="checkbox" name="online_only" value="1" id="oo">
           <label for="oo" style="margin:0">En ligne seulement</label>
@@ -28,7 +35,14 @@
     <div class="card p-5">
       <div class="text-sm font-semibold text-white mb-4">➕ Ajout rapide</div>
       <form method="post" action="/members/add" class="form-row">
-        <div><label>Groupe cible</label><input type="text" name="group" required placeholder="@username"></div>
+        <div><label>Groupe cible</label>
+          {% if groups %}
+          <select name="group" required>
+            <option value="">— Sélectionner —</option>
+            {% for g in groups %}<option value="{% if g.username %}@{{ g.username }}{% else %}{{ g.id }}{% endif %}">{% if g.creator %}👑{% elif g.admin %}⭐{% else %}👤{% endif %} {{ g.title }} ({{ g.members or '?' }})</option>{% endfor %}
+          </select>
+          {% else %}<input type="text" name="group" required placeholder="@username">{% endif %}
+        </div>
         <div><label>CSV</label>
         <select name="csv_file">{% for f in csv_files %}<option value="{{ f }}" {% if f == 'members.csv' %}selected{% endif %}>{{ f }}</option>{% endfor %}</select></div>
         <div class="grid-2">
@@ -44,7 +58,14 @@
     <div class="card p-5">
       <div class="text-sm font-semibold text-white mb-4">🌊 Ajout par vagues</div>
       <form method="post" action="/members/wave-add" class="form-row">
-        <div><label>Groupe cible</label><input type="text" name="group" required placeholder="@username"></div>
+        <div><label>Groupe cible</label>
+          {% if groups %}
+          <select name="group" required>
+            <option value="">— Sélectionner —</option>
+            {% for g in groups %}<option value="{% if g.username %}@{{ g.username }}{% else %}{{ g.id }}{% endif %}">{% if g.creator %}👑{% elif g.admin %}⭐{% else %}👤{% endif %} {{ g.title }} ({{ g.members or '?' }})</option>{% endfor %}
+          </select>
+          {% else %}<input type="text" name="group" required placeholder="@username">{% endif %}
+        </div>
         <div><label>CSV</label>
         <select name="csv_file">{% for f in csv_files %}<option value="{{ f }}" {% if f == 'members.csv' %}selected{% endif %}>{{ f }}</option>{% endfor %}</select></div>
         <div class="grid-3">

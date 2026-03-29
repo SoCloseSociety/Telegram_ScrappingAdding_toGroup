@@ -698,9 +698,21 @@ async def members_page(request: Request, q: str = ""):
         [f for f in os.listdir(".") if f.endswith(".csv")],
         key=lambda x: os.path.getmtime(x), reverse=True,
     )
+    # Load groups for quick select
+    groups_for_select = []
+    if GROUPS_CACHE.exists():
+        try:
+            all_grps = json.loads(GROUPS_CACHE.read_text())
+            groups_for_select = sorted(
+                [g for g in all_grps if g.get("type") != "canal"],
+                key=lambda g: g.get("title", "").lower()
+            )
+        except Exception:
+            pass
     return templates.TemplateResponse(request, "members.html", {
         **ctx, "header": header, "rows": rows[:100],
         "csv_files": csv_files, "q": q, "total_filtered": len(rows),
+        "groups": groups_for_select,
     })
 
 
@@ -1090,9 +1102,21 @@ async def campaigns_page(request: Request):
         if j["status"] == "running" and "Campagne:" in j.get("title", ""):
             running_ids.add(j["title"].split(":")[-1].strip())
     tpls = _load_templates()
+    # Load groups cache for quick select
+    groups_cache = []
+    if GROUPS_CACHE.exists():
+        try:
+            groups_cache = json.loads(GROUPS_CACHE.read_text())
+        except Exception:
+            pass
+    # Filter: only groups where user can add members, sorted by name
+    addable_groups = sorted(
+        [g for g in groups_cache if g.get("can_add")],
+        key=lambda g: g.get("title", "").lower()
+    )
     return templates.TemplateResponse(request, "campaigns.html", {
         **ctx, "campaigns": camp_list, "csv_files": csv_files,
-        "running_ids": running_ids, "templates": tpls,
+        "running_ids": running_ids, "templates": tpls, "groups": addable_groups,
     })
 
 

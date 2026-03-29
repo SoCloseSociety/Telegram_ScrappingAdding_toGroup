@@ -46,9 +46,31 @@
     <form method="post" action="/campaigns/create" class="form-row" id="campaign-form">
       <div class="grid-2">
         <div><label>Nom de la campagne</label>
-          <input type="text" name="name" required placeholder="Ex: Bobby Call's Growth Q1"></div>
-        <div><label>Groupe cible (@username ou lien)</label>
-          <input type="text" name="group" required placeholder="@bobbycallshub"></div>
+          <input type="text" name="name" id="f-name" required placeholder="Ex: Bobby Call's Growth Q1"></div>
+        <div>
+          <label>Groupe cible</label>
+          {% if groups %}
+          <select name="group" id="f-group" onchange="onGroupSelect(this)">
+            <option value="">— Sélectionner un groupe —</option>
+            {% for g in groups %}
+            <option value="@{{ g.username }}" data-title="{{ g.title }}" data-members="{{ g.members }}"
+                    data-creator="{{ g.creator }}" data-admin="{{ g.admin }}"
+                    {% if not g.username %}value="{{ g.id }}"{% endif %}>
+              {% if g.creator %}👑{% elif g.admin %}⭐{% else %}👤{% endif %}
+              {{ g.title }} ({{ g.members or '?' }})
+            </option>
+            {% endfor %}
+            <option value="__custom__">✏️ Entrer manuellement...</option>
+          </select>
+          <input type="text" id="f-group-custom" name="group_custom" placeholder="@username ou lien"
+                 style="display:none;margin-top:6px;">
+          {% else %}
+          <input type="text" name="group" required placeholder="@username ou lien">
+          <div class="text-xs text-muted mt-1">
+            <a href="/groups" style="color:#f472b6;">Charger mes groupes</a> pour le sélecteur rapide
+          </div>
+          {% endif %}
+        </div>
       </div>
       <div class="grid-4">
         <div><label>CSV source</label>
@@ -210,8 +232,33 @@
   {% endif %}
 </div>
 
-<!-- Template auto-fill JS -->
+<!-- Group select + Template auto-fill JS -->
 <script>
+function onGroupSelect(sel) {
+  var custom = document.getElementById('f-group-custom');
+  if (!custom) return;
+  if (sel.value === '__custom__') {
+    custom.style.display = 'block';
+    custom.required = true;
+    custom.focus();
+    // Swap name so the custom field is submitted instead
+    sel.name = '_group_select';
+    custom.name = 'group';
+  } else {
+    custom.style.display = 'none';
+    custom.required = false;
+    sel.name = 'group';
+    custom.name = 'group_custom';
+    // Auto-fill campaign name if empty
+    var nameField = document.getElementById('f-name');
+    if (nameField && !nameField.value) {
+      var opt = sel.options[sel.selectedIndex];
+      var title = opt.getAttribute('data-title') || '';
+      if (title) nameField.value = title + ' Growth';
+    }
+  }
+}
+
 var _tpls = JSON.parse(document.getElementById('tpl-data').textContent);
 function applyTpl(idx) {
   var t = _tpls[idx];
