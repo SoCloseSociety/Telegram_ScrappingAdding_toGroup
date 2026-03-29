@@ -453,8 +453,12 @@ async def api_stats():
 #  ROUTES: Accounts
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Temporary storage for pending Telegram connections {phone: {client, phone_hash}}
+_pending_connections: dict = {}
+
+
 @app.get("/accounts", response_class=HTMLResponse)
-async def accounts_page(request: Request):
+async def accounts_page(request: Request, pending: str = ""):
     ctx = _ctx()
     accts = nm.config.get("accounts", [])
     annotated = []
@@ -462,9 +466,102 @@ async def accounts_page(request: Request):
         phone = a.get("phone", "?")
         has_session = os.path.exists(f"{phone}.session")
         annotated.append({**a, "idx": i, "has_session": has_session})
+    # Check if we have a pending connection
+    pending_data = _pending_connections.get(pending, {})
     return templates.TemplateResponse(request, "accounts.html", {
         **ctx, "accounts": annotated,
+        "pending_phone": pending_data.get("phone", ""),
+        "pending_api_id": pending_data.get("api_id", ""),
+        "pending_api_hash": pending_data.get("api_hash", ""),
+        "pending_phone_hash": pending_data.get("phone_hash", ""),
     })
+
+
+@app.post("/accounts/connect/send-code")
+async def send_code(api_id: str = Form(...), api_hash: str = Form(...), phone: str = Form(...)):
+    """Step 1: Send SMS code to phone number."""
+    phone = phone.strip()
+    try:
+        api_id_int = int(api_id.strip())
+    except ValueError:
+        return _redirect("/accounts", "API ID invalide", "error")
+
+    def _send():
+        import asyncio as _aio
+        try:
+            _aio.get_event_loop()
+        except RuntimeError:
+            _aio.set_event_loop(_aio.new_event_loop())
+        from telethon.sync import TelegramClient
+        client = TelegramClient(phone, api_id_int, api_hash.strip())
+        client.connect()
+        result = client.send_code_request(phone)
+        _pending_connections[phone] = {
+            "client": client,
+            "phone": phone,
+            "api_id": api_id.strip(),
+            "api_hash": api_hash.strip(),
+            "phone_hash": result.phone_code_hash,
+        }
+        return "OK"
+
+    try:
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(executor, _send)
+        return _redirect(f"/accounts?pending={phone}", f"Code envoyé à {phone}")
+    except Exception as e:
+        return _redirect("/accounts", f"Erreur: {str(e)[:80]}", "error")
+
+
+@app.post("/accounts/connect/verify")
+async def verify_code(
+    phone: str = Form(...), api_id: str = Form(...),
+    api_hash: str = Form(...), phone_hash: str = Form(...),
+    code: str = Form(...),
+):
+    """Step 2: Verify the SMS code and save the account."""
+    pending = _pending_connections.get(phone)
+    if not pending or not pending.get("client"):
+        return _redirect("/accounts", "Session expirée — recommencez", "error")
+
+    def _verify():
+        client = pending["client"]
+        try:
+            client.sign_in(phone, code.strip(), phone_code_hash=phone_hash)
+            me = client.get_me()
+            client.disconnect()
+            return me
+        except Exception as e:
+            try:
+                client.disconnect()
+            except Exception:
+                pass
+            raise
+
+    try:
+        loop = asyncio.get_event_loop()
+        me = await loop.run_in_executor(executor, _verify)
+
+        # Add to config
+        _reload_config()
+        nm.config.setdefault("accounts", []).append({
+            "api_id": api_id,
+            "api_hash": api_hash,
+            "phone": phone,
+            "blacklisted": False,
+            "blacklist_time": None,
+        })
+        nm.save_config()
+        auto.config.update(nm.config)
+
+        # Cleanup
+        _pending_connections.pop(phone, None)
+
+        name = f"{me.first_name or ''} {me.last_name or ''}".strip()
+        return _redirect("/accounts", f"✅ Connecté: {name} (@{me.username or 'N/A'})")
+    except Exception as e:
+        _pending_connections.pop(phone, None)
+        return _redirect("/accounts", f"Erreur: {str(e)[:80]}", "error")
 
 
 @app.post("/accounts/{idx}/blacklist")

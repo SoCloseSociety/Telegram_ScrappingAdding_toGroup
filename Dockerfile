@@ -29,4 +29,8 @@ RUN ln -sf /app/data/config.json /app/config.json && \
 ENV PORT=8700
 EXPOSE ${PORT}
 
-CMD ["sh", "-c", "uvicorn dashboard.app:app --host 0.0.0.0 --port ${PORT}"]
+# Entrypoint: symlink sessions + CSV from data dir, then start
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+CMD ["/app/entrypoint.sh"]
