@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Telegram Manager</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0f172a; color:#e2e8f0; font-family:system-ui,-apple-system,sans-serif;
+           display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { width:100%; max-width:380px; padding:20px; }
+    .logo { text-align:center; margin-bottom:32px; }
+    .logo h1 { font-size:28px; color:#60a5fa; }
+    .logo p { font-size:12px; color:#475569; margin-top:4px; }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:16px;
+            padding:32px; }
+    .card h2 { font-size:16px; font-weight:600; color:#fff; margin-bottom:24px;
+               text-align:center; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; font-size:12px; color:#94a3b8; margin-bottom:6px; }
+    .field input { width:100%; background:#0f172a; border:1px solid #334155; color:#e2e8f0;
+                   border-radius:10px; padding:10px 14px; font-size:14px;
+                   transition:border-color .2s; }
+    .field input:focus { outline:none; border-color:#3b82f6;
+                         box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+    .btn { width:100%; padding:11px; border:none; border-radius:10px; font-size:14px;
+           font-weight:600; cursor:pointer; background:#2563eb; color:#fff;
+           transition:opacity .15s; margin-top:8px; }
+    .btn:hover { opacity:.9; }
+    .error { background:#450a0a; color:#f87171; border:1px solid #7f1d1d;
+             border-radius:8px; padding:10px 14px; font-size:12px;
+             margin-bottom:16px; text-align:center; }
+    .footer { text-align:center; margin-top:20px; font-size:11px; color:#334155; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="logo">
+      <h1>🤖 TG Manager</h1>
+      <p>Telegram Group Management Dashboard</p>
+    </div>
+    <div class="card">
+      <h2>Connexion</h2>
+      {% if error %}
+        <div class="error">{{ error }}</div>
+      {% endif %}
+      <form method="post" action="/login">
+        <div class="field">
+          <label>Nom d'utilisateur</label>
+          <input type="text" name="username" required autofocus placeholder="admin">
+        </div>
+        <div class="field">
+          <label>Mot de passe</label>
+          <input type="password" name="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn">Se connecter</button>
+      </form>
+    </div>
+    <div class="footer">Telegram Manager v2 — Secured Access</div>
+  </div>
+</body>
+</html>

@@ -2,15 +2,18 @@
 Telegram Manager — Dashboard (FastAPI + HTMX + SSE)
 Run with: uvicorn dashboard.app:app --reload --port 8000
 """
-import os, sys, json, csv, asyncio, queue, threading, uuid, time, io, shutil
+import os, sys, json, csv, asyncio, queue, threading, uuid, time, io, shutil, hashlib, secrets
 from pathlib import Path
 from urllib.parse import urlencode
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+from functools import wraps
 
-from fastapi import FastAPI, Request, Form, Query
+from fastapi import FastAPI, Request, Form, Query, Response, Cookie, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # ── Point working dir to project root ─────────────────────────────────────────
 ROOT = Path(__file__).parent.parent
@@ -27,6 +30,235 @@ templates = Jinja2Templates(directory=str(DASH / "templates"))
 app.mount("/static", StaticFiles(directory=str(DASH / "static")), name="static")
 
 executor = ThreadPoolExecutor(max_workers=4)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  AUTH SYSTEM — session-based login
+# ═══════════════════════════════════════════════════════════════════════════════
+
+AUTH_FILE = ROOT / "auth.json"
+SESSION_COOKIE = "tgm_session"
+SESSION_MAX_AGE = 86400 * 7  # 7 days
+
+# In-memory session store: {token: {user, expires, ip, created}}
+_sessions: dict[str, dict] = {}
+
+
+def _hash_password(password: str, salt: str = "") -> str:
+    if not salt:
+        salt = secrets.token_hex(16)
+    h = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    return f"{salt}:{h.hex()}"
+
+
+def _verify_password(password: str, stored: str) -> bool:
+    try:
+        salt, hashed = stored.split(':', 1)
+        return _hash_password(password, salt) == stored
+    except Exception:
+        return False
+
+
+def _load_auth() -> dict:
+    if AUTH_FILE.exists():
+        try:
+            return json.loads(AUTH_FILE.read_text())
+        except Exception:
+            pass
+    return {"users": []}
+
+
+def _save_auth(data: dict):
+    AUTH_FILE.write_text(json.dumps(data, indent=2))
+
+
+def _init_auth():
+    """Create default admin account if no users exist."""
+    auth = _load_auth()
+    if not auth.get("users"):
+        default_pass = secrets.token_urlsafe(12)
+        auth["users"] = [{
+            "username": "admin",
+            "password": _hash_password(default_pass),
+            "role": "admin",
+            "created": datetime.now().isoformat(),
+        }]
+        _save_auth(auth)
+        # Write password to a temp file for first login
+        cred_file = ROOT / ".default_credentials"
+        cred_file.write_text(f"Username: admin\nPassword: {default_pass}\n")
+        print(f"\n  🔑 Default credentials saved to .default_credentials")
+        print(f"     Username: admin")
+        print(f"     Password: {default_pass}")
+        print(f"     ⚠️  Change this after first login!\n")
+
+
+_init_auth()
+
+
+def _create_session(username: str, ip: str = "") -> str:
+    token = secrets.token_urlsafe(32)
+    _sessions[token] = {
+        "user": username,
+        "expires": (datetime.now() + timedelta(seconds=SESSION_MAX_AGE)).isoformat(),
+        "ip": ip,
+        "created": datetime.now().isoformat(),
+    }
+    # Cleanup expired sessions
+    now = datetime.now().isoformat()
+    expired = [k for k, v in _sessions.items() if v["expires"] < now]
+    for k in expired:
+        del _sessions[k]
+    return token
+
+
+def _get_session(token: str) -> dict | None:
+    if not token or token not in _sessions:
+        return None
+    session = _sessions[token]
+    if session["expires"] < datetime.now().isoformat():
+        del _sessions[token]
+        return None
+    return session
+
+
+def _destroy_session(token: str):
+    _sessions.pop(token, None)
+
+
+# ── Auth middleware — protect all routes except /login ────────────────────────
+
+PUBLIC_PATHS = {"/login", "/static"}
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        # Allow public paths
+        if path == "/login" or path.startswith("/static"):
+            return await call_next(request)
+        # Check session cookie
+        token = request.cookies.get(SESSION_COOKIE)
+        session = _get_session(token)
+        if not session:
+            # SSE and API endpoints → 401 JSON
+            if path.endswith("/stream") or path.startswith("/api/"):
+                from fastapi.responses import JSONResponse
+                return JSONResponse({"error": "unauthorized"}, status_code=401)
+            # Everything else → redirect to login
+            return RedirectResponse("/login", status_code=303)
+        # Attach user to request state
+        request.state.user = session["user"]
+        return await call_next(request)
+
+
+app.add_middleware(AuthMiddleware)
+
+
+# ── Login/Logout routes ──────────────────────────────────────────────────────
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request, error: str = ""):
+    return templates.TemplateResponse(request, "login.html", {"error": error})
+
+
+@app.post("/login")
+async def login_submit(request: Request, username: str = Form(...), password: str = Form(...)):
+    auth = _load_auth()
+    for user in auth.get("users", []):
+        if user["username"] == username and _verify_password(password, user["password"]):
+            token = _create_session(username, request.client.host if request.client else "")
+            response = RedirectResponse("/?toast=Bienvenue+!&tt=success", status_code=303)
+            response.set_cookie(
+                SESSION_COOKIE, token,
+                max_age=SESSION_MAX_AGE,
+                httponly=True,
+                samesite="lax",
+            )
+            return response
+    return RedirectResponse("/login?error=Identifiants+incorrects", status_code=303)
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    token = request.cookies.get(SESSION_COOKIE)
+    if token:
+        _destroy_session(token)
+    response = RedirectResponse("/login", status_code=303)
+    response.delete_cookie(SESSION_COOKIE)
+    return response
+
+
+# ── Settings page — change password, manage users ─────────────────────────────
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request):
+    ctx = _ctx()
+    auth = _load_auth()
+    users = [{"username": u["username"], "role": u.get("role", "user"),
+              "created": u.get("created", "?")} for u in auth.get("users", [])]
+    return templates.TemplateResponse(request, "settings.html", {
+        **ctx, "auth_users": users, "current_user": request.state.user,
+    })
+
+
+@app.post("/settings/change-password")
+async def change_password(
+    request: Request,
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+):
+    if new_password != confirm_password:
+        return _redirect("/settings", "Les mots de passe ne correspondent pas", "error")
+    if len(new_password) < 6:
+        return _redirect("/settings", "Minimum 6 caractères", "error")
+
+    auth = _load_auth()
+    username = request.state.user
+    for user in auth["users"]:
+        if user["username"] == username:
+            if not _verify_password(current_password, user["password"]):
+                return _redirect("/settings", "Mot de passe actuel incorrect", "error")
+            user["password"] = _hash_password(new_password)
+            _save_auth(auth)
+            # Remove default credentials file if it exists
+            cred_file = ROOT / ".default_credentials"
+            if cred_file.exists():
+                cred_file.unlink()
+            return _redirect("/settings", "Mot de passe changé !")
+    return _redirect("/settings", "Utilisateur introuvable", "error")
+
+
+@app.post("/settings/add-user")
+async def add_user(
+    request: Request,
+    new_username: str = Form(...),
+    new_user_password: str = Form(...),
+):
+    if len(new_user_password) < 6:
+        return _redirect("/settings", "Minimum 6 caractères", "error")
+    auth = _load_auth()
+    if any(u["username"] == new_username for u in auth["users"]):
+        return _redirect("/settings", f"L'utilisateur '{new_username}' existe déjà", "error")
+    auth["users"].append({
+        "username": new_username,
+        "password": _hash_password(new_user_password),
+        "role": "user",
+        "created": datetime.now().isoformat(),
+    })
+    _save_auth(auth)
+    return _redirect("/settings", f"Utilisateur '{new_username}' créé")
+
+
+@app.post("/settings/delete-user/{username}")
+async def delete_user(request: Request, username: str):
+    if username == request.state.user:
+        return _redirect("/settings", "Impossible de supprimer votre propre compte", "error")
+    auth = _load_auth()
+    auth["users"] = [u for u in auth["users"] if u["username"] != username]
+    _save_auth(auth)
+    return _redirect("/settings", f"Utilisateur '{username}' supprimé")
 
 # ── Jobs store ────────────────────────────────────────────────────────────────
 _jobs: dict[str, dict] = {}

@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.session
+config.json
+auth.json
+.default_credentials
+history.db
+automation.db
+activity.log
+*.csv
+groups_cache.json
+.git/
+.DS_Store
+node_modules/
+docs/
+*.pyc

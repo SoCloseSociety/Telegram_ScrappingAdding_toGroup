@@ -8,6 +8,10 @@
 # Config (contient les clés API Telegram)
 config.json
 
+# Auth (hashed passwords + default credentials)
+auth.json
+.default_credentials
+
 # Bases de données
 history.db
 automation.db
@@ -61,3 +65,4 @@ package-lock.json
 add1.py
 package.json
 save1.txt
+*-journal

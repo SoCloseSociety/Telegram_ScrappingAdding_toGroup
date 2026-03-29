@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+{% set active_page = "settings" %}
+
+{% block content %}
+<div class="space-y">
+  <div>
+    <div class="text-xl">⚙️ Paramètres</div>
+    <p class="text-sm mt-1 text-muted">Connecté en tant que <strong>{{ current_user }}</strong></p>
+  </div>
+
+  <!-- Change password -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">🔒 Changer le mot de passe</div>
+    <form method="post" action="/settings/change-password" class="form-row" style="max-width:400px;">
+      <div>
+        <label>Mot de passe actuel</label>
+        <input type="password" name="current_password" required>
+      </div>
+      <div>
+        <label>Nouveau mot de passe</label>
+        <input type="password" name="new_password" required minlength="6" placeholder="Minimum 6 caractères">
+      </div>
+      <div>
+        <label>Confirmer</label>
+        <input type="password" name="confirm_password" required>
+      </div>
+      <button type="submit" class="btn btn-blue">🔒 Changer</button>
+    </form>
+  </div>
+
+  <!-- Manage users -->
+  <div class="card overflow-hidden">
+    <div class="card-header">
+      <span>👥 Utilisateurs</span>
+    </div>
+    <table>
+      <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Créé</th><th class="text-right">Actions</th></tr></thead>
+      <tbody>
+        {% for u in auth_users %}
+        <tr>
+          <td class="font-mono">
+            {{ u.username }}
+            {% if u.username == current_user %}
+              <span class="badge badge-blue ml-2">vous</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.role == 'admin' %}
+              <span class="badge badge-green">admin</span>
+            {% else %}
+              <span class="badge" style="background:#1e293b;color:#94a3b8;border:1px solid #334155;">user</span>
+            {% endif %}
+          </td>
+          <td class="text-muted text-xs">{{ u.created[:16] if u.created != '?' else '?' }}</td>
+          <td class="text-right">
+            {% if u.username != current_user %}
+            <form method="post" action="/settings/delete-user/{{ u.username }}"
+                  onsubmit="return confirm('Supprimer {{ u.username }} ?')" style="display:inline;">
+              <button class="btn btn-red btn-sm">🗑</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add user -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">➕ Ajouter un utilisateur</div>
+    <form method="post" action="/settings/add-user" class="flex gap-3 items-end" style="max-width:600px;">
+      <div style="flex:1;">
+        <label>Nom d'utilisateur</label>
+        <input type="text" name="new_username" required placeholder="john">
+      </div>
+      <div style="flex:1;">
+        <label>Mot de passe</label>
+        <input type="password" name="new_user_password" required minlength="6" placeholder="Min. 6 caractères">
+      </div>
+      <button type="submit" class="btn btn-green">➕ Créer</button>
+    </form>
+  </div>
+
+  <!-- Session info -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">📊 Session</div>
+    <div class="text-xs text-muted" style="line-height:1.8;">
+      Utilisateur : <strong>{{ current_user }}</strong><br>
+      Cookie : <code>tgm_session</code> (httpOnly, 7 jours)<br>
+      <a href="/logout" class="btn btn-red mt-4">🚪 Se déconnecter</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
