@@ -27,17 +27,14 @@
     <!-- Form -->
     <div class="card p-5">
       <div class="text-sm font-semibold text-white mb-4">🔌 Connecter un nouveau compte</div>
-      {% if pending_phone %}
+      {% if pending_token %}
         <!-- Step 2: Enter code -->
         <div class="mb-4" style="padding:10px 14px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;">
           <div class="text-xs text-muted">📨 Code envoyé à <strong style="color:#f472b6;">{{ pending_phone }}</strong></div>
           <div class="text-xs text-muted mt-1">Vérifiez vos SMS ou l'app Telegram.</div>
         </div>
         <form method="post" action="/accounts/connect/verify" class="form-row">
-          <input type="hidden" name="phone" value="{{ pending_phone }}">
-          <input type="hidden" name="api_id" value="{{ pending_api_id }}">
-          <input type="hidden" name="api_hash" value="{{ pending_api_hash }}">
-          <input type="hidden" name="phone_hash" value="{{ pending_phone_hash }}">
+          <input type="hidden" name="token" value="{{ pending_token }}">
           <div>
             <label>Code reçu par SMS/Telegram</label>
             <input type="text" name="code" required autofocus placeholder="12345" style="font-size:18px;letter-spacing:4px;text-align:center;">

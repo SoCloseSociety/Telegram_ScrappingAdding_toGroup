@@ -480,14 +480,12 @@ async def accounts_page(request: Request, pending: str = ""):
         phone = a.get("phone", "?")
         has_session = os.path.exists(f"{phone}.session")
         annotated.append({**a, "idx": i, "has_session": has_session})
-    # Check if we have a pending connection
+    # Check if we have a pending connection (token-based)
     pending_data = _pending_connections.get(pending, {})
     return templates.TemplateResponse(request, "accounts.html", {
         **ctx, "accounts": annotated,
+        "pending_token": pending if pending_data else "",
         "pending_phone": pending_data.get("phone", ""),
-        "pending_api_id": pending_data.get("api_id", ""),
-        "pending_api_hash": pending_data.get("api_hash", ""),
-        "pending_phone_hash": pending_data.get("phone_hash", ""),
     })
 
 
@@ -500,6 +498,9 @@ async def send_code(api_id: str = Form(...), api_hash: str = Form(...), phone: s
     except ValueError:
         return _redirect("/accounts", "API ID invalide", "error")
 
+    # Generate a short token to reference this pending connection
+    token = secrets.token_urlsafe(8)
+
     def _send():
         import asyncio as _aio
         try:
@@ -510,7 +511,7 @@ async def send_code(api_id: str = Form(...), api_hash: str = Form(...), phone: s
         client = TelegramClient(phone, api_id_int, api_hash.strip())
         client.connect()
         result = client.send_code_request(phone)
-        _pending_connections[phone] = {
+        _pending_connections[token] = {
             "client": client,
             "phone": phone,
             "api_id": api_id.strip(),
@@ -521,22 +522,24 @@ async def send_code(api_id: str = Form(...), api_hash: str = Form(...), phone: s
 
     try:
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(executor, _send)
-        return _redirect(f"/accounts?pending={phone}", f"Code envoyé à {phone}")
+        await loop.run_in_executor(executor, _send)
+        return _redirect(f"/accounts?pending={token}", f"Code envoyé à {phone}")
     except Exception as e:
         return _redirect("/accounts", f"Erreur: {str(e)[:80]}", "error")
 
 
 @app.post("/accounts/connect/verify")
 async def verify_code(
-    phone: str = Form(...), api_id: str = Form(...),
-    api_hash: str = Form(...), phone_hash: str = Form(...),
-    code: str = Form(...),
+    token: str = Form(...), code: str = Form(...),
 ):
     """Step 2: Verify the SMS code and save the account."""
-    pending = _pending_connections.get(phone)
+    pending = _pending_connections.get(token)
     if not pending or not pending.get("client"):
         return _redirect("/accounts", "Session expirée — recommencez", "error")
+    phone = pending["phone"]
+    api_id = pending["api_id"]
+    api_hash = pending["api_hash"]
+    phone_hash = pending["phone_hash"]
 
     def _verify():
         client = pending["client"]
@@ -569,12 +572,12 @@ async def verify_code(
         auto.config.update(nm.config)
 
         # Cleanup
-        _pending_connections.pop(phone, None)
+        _pending_connections.pop(token, None)
 
         name = f"{me.first_name or ''} {me.last_name or ''}".strip()
         return _redirect("/accounts", f"✅ Connecté: {name} (@{me.username or 'N/A'})")
     except Exception as e:
-        _pending_connections.pop(phone, None)
+        _pending_connections.pop(token, None)
         return _redirect("/accounts", f"Erreur: {str(e)[:80]}", "error")
 
 
