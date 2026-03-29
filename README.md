@@ -15,33 +15,49 @@ Scrape members, add them to your groups with smart multi-account rotation, run a
 
 ---
 
-## Dashboard Preview
+## Dashboard
 
 <div align="center">
 
-### Overview
 ![Dashboard Overview](docs/screenshots/dashboard-overview.png)
 
-### Campaign Automation
-![Campaigns](docs/screenshots/dashboard-campaigns.png)
+<p><em>Real-time overview — accounts, members, proxies, active jobs</em></p>
 
-### Campaign Templates (anti-ban presets)
-![Campaign Templates](docs/screenshots/dashboard-campaign-template.png)
+<details>
+<summary><strong>📸 See all dashboard pages (click to expand)</strong></summary>
+<br>
 
-### Member Management
-![Members](docs/screenshots/dashboard-members.png)
+| Campaigns | Campaign Templates |
+|:-:|:-:|
+| ![Campaigns](docs/screenshots/dashboard-campaigns.png) | ![Templates](docs/screenshots/dashboard-campaign-template.png) |
+| *Create, launch, pause & monitor automated campaigns* | *6 pre-built anti-ban presets — auto-fills the form* |
 
-### Group Explorer
-![Groups](docs/screenshots/dashboard-groups.png)
+| Members | Groups |
+|:-:|:-:|
+| ![Members](docs/screenshots/dashboard-members.png) | ![Groups](docs/screenshots/dashboard-groups.png) |
+| *Scrape, add, wave-add, filter, search* | *Browse all your Telegram groups with roles & member counts* |
 
-### Account Management
-![Accounts](docs/screenshots/dashboard-accounts.png)
+| Accounts | Proxies |
+|:-:|:-:|
+| ![Accounts](docs/screenshots/dashboard-accounts.png) | ![Proxies](docs/screenshots/dashboard-proxies.png) |
+| *Manage accounts — blacklist, reconnect, check* | *Add, test & manage SOCKS5 proxies* |
 
-### CSV File Manager
-![CSV Files](docs/screenshots/dashboard-csv.png)
+| CSV Files | CSV Preview |
+|:-:|:-:|
+| ![CSV](docs/screenshots/dashboard-csv.png) | ![Preview](docs/screenshots/dashboard-csv-preview.png) |
+| *List all CSVs with size, rows & actions* | *Click any file to preview its content* |
 
-### Live Job Terminal
-![Jobs](docs/screenshots/dashboard-jobs.png)
+| Messages | Logs |
+|:-:|:-:|
+| ![Messages](docs/screenshots/dashboard-messages.png) | ![Logs](docs/screenshots/dashboard-logs.png) |
+| *Clone, search & manage messages* | *Color-coded activity logs* |
+
+| Job Terminal | Job History |
+|:-:|:-:|
+| ![Job](docs/screenshots/dashboard-jobs.png) | |
+| *Live SSE streaming — watch operations in real-time* | |
+
+</details>
 
 </div>
 
