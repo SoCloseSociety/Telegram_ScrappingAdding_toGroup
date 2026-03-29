@@ -177,6 +177,12 @@ class AccountManager:
         if phone in self.clients:
             return self.clients[phone]
         try:
+            # Ensure asyncio event loop exists in this thread
+            import asyncio as _aio
+            try:
+                _aio.get_event_loop()
+            except RuntimeError:
+                _aio.set_event_loop(_aio.new_event_loop())
             client = TelegramClient(phone, int(acct['api_id']), acct['api_hash'])
             client.connect()
             if not client.is_user_authorized():
@@ -463,6 +469,7 @@ def run_campaign(cid, callback=None):
 
             wave_added = 0
             all_flooded = True
+            connect_failures = 0
 
             for j, user in enumerate(batch, 1):
                 if _stop_requested:
@@ -488,7 +495,13 @@ def run_campaign(cid, callback=None):
 
                 client = mgr.connect(acct)
                 if not client:
+                    connect_failures += 1
+                    if connect_failures >= len(mgr.accounts) * 2:
+                        print(f"  {R}🛑 Aucun compte ne peut se connecter — arrêt{RST}")
+                        flood_stop = True
+                        break
                     continue
+                connect_failures = 0
 
                 phone = acct['phone']
                 print(f"  [{j}/{len(batch)}] ➕ {name_display} via {phone[-4:]}...", end=" ", flush=True)
@@ -556,6 +569,7 @@ def run_campaign(cid, callback=None):
 
                 except Exception as e:
                     stats['error'] += 1
+                    connect_failures += 1
                     err_str = str(e)[:60]
                     print(f"{Y}⚠️  {err_str}{RST}")
                     # Log error
@@ -568,9 +582,14 @@ def run_campaign(cid, callback=None):
                     conn.commit()
                     conn.close()
                     emit('add', {'user': name_display, 'status': 'error', 'error': err_str})
+                    # Too many consecutive errors → stop the wave
+                    if connect_failures >= 5:
+                        print(f"  {R}🛑 5 erreurs consécutives — arrêt de la vague{RST}")
+                        flood_stop = True
+                        break
 
                 # Timer between adds (45-75s)
-                if j < len(batch) and not _stop_requested:
+                if j < len(batch) and not _stop_requested and not flood_stop:
                     wait = random.uniform(45, 75)
                     print(f"      ⏱️  {wait:.0f}s...", flush=True)
                     time.sleep(wait)
@@ -666,6 +685,11 @@ def _resolve_group(group_str):
         return None, None, None, "❌ Aucun compte actif."
     for acct in active:
         try:
+            import asyncio as _aio
+            try:
+                _aio.get_event_loop()
+            except RuntimeError:
+                _aio.set_event_loop(_aio.new_event_loop())
             client = TelegramClient(acct['phone'], int(acct['api_id']), acct['api_hash'])
             client.connect()
             if not client.is_user_authorized():
