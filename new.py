@@ -917,7 +917,10 @@ def add_members(target_group, input_file='members.csv', num_members=None,
     users = read_members_csv(input_file)
     if not users:
         return f"❌ Fichier {input_file} vide ou introuvable.\n"
-    num_members = len(users) if (num_members is None or num_members == '') else int(num_members)
+    try:
+        num_members = len(users) if (num_members is None or num_members == '') else int(num_members)
+    except (ValueError, TypeError):
+        return "❌ Nombre de membres invalide.\n"
     start_index = load_progress(input_file)
     if start_index > 0:
         print(f"⏩ Reprise depuis #{start_index + 1}...")

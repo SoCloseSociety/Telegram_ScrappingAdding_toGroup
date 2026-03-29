@@ -122,6 +122,9 @@ def _reload_config():
             data = json.load(f)
         nm.config.clear()
         nm.config.update(data)
+        # Keep automation engine in sync
+        auto.config.clear()
+        auto.config.update(data)
 
 
 def _ctx() -> dict:

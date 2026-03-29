@@ -386,11 +386,16 @@ def run_campaign(cid, callback=None):
     """
     global _stop_requested
     _stop_requested = False
-    signal.signal(signal.SIGINT, _handle_signal)
+    import threading as _th
+    if _th.current_thread() is _th.main_thread():
+        signal.signal(signal.SIGINT, _handle_signal)
 
     campaign = get_campaign(cid)
     if not campaign:
         return "❌ Campagne introuvable."
+    if not campaign.get('target_group_hash'):
+        update_campaign(cid, status='error')
+        return "❌ Hash du groupe manquant. Recréez la campagne."
 
     def emit(event, data=None):
         if callback:
@@ -610,7 +615,8 @@ def run_campaign(cid, callback=None):
 
     finally:
         mgr.disconnect_all()
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        if _th.current_thread() is _th.main_thread():
+            signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Final state
     campaign = get_campaign(cid)
@@ -719,14 +725,18 @@ def interactive_menu():
                 continue
 
             members = read_members_csv(csv_file)
-            total = input(f"  Nombre total ({len(members)} dispo, Entrée=tous): ").strip()
-            total = int(total) if total else len(members)
-            per_wave = input("  Par vague (Entrée=5): ").strip()
-            per_wave = int(per_wave) if per_wave else 5
-            hours = input("  Heures entre vagues (Entrée=5): ").strip()
-            hours = float(hours) if hours else 5
-            daily = input("  Limite /jour /compte (Entrée=15): ").strip()
-            daily = int(daily) if daily else 15
+            try:
+                total = input(f"  Nombre total ({len(members)} dispo, Entrée=tous): ").strip()
+                total = int(total) if total else len(members)
+                per_wave = input("  Par vague (Entrée=5): ").strip()
+                per_wave = int(per_wave) if per_wave else 5
+                hours = input("  Heures entre vagues (Entrée=5): ").strip()
+                hours = float(hours) if hours else 5
+                daily = input("  Limite /jour /compte (Entrée=15): ").strip()
+                daily = int(daily) if daily else 15
+            except ValueError:
+                print(f"  {R}❌ Valeur invalide. Utilisez des nombres.{RST}")
+                continue
 
             cid = create_campaign(name, gid, title, ahash,
                                   source_csv=csv_file, total=total,
