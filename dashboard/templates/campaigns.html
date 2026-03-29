@@ -11,13 +11,14 @@
   </div>
 
   <!-- Template selector -->
+  <script id="tpl-data" type="application/json">{{ templates | tojson }}</script>
   <div class="card p-5">
     <div class="text-sm font-semibold text-white mb-4">📋 Choisir un template de configuration</div>
     <div class="text-xs text-muted mb-4">Sélectionnez un profil adapté à votre nombre de comptes. Les valeurs du formulaire ci-dessous seront remplies automatiquement.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;" id="tpl-buttons">
       {% for t in templates %}
       <button class="btn {% if t.accounts_needed <= active_accounts %}btn-blue{% else %}btn-slate{% endif %}"
-              onclick="applyTemplate({{ t | tojson }})"
+              onclick="applyTpl({{ loop.index0 }})" type="button"
               {% if t.accounts_needed > active_accounts %}title="Nécessite {{ t.accounts_needed }} comptes (vous en avez {{ active_accounts }})"{% endif %}>
         {{ t.name }}
         <span class="text-xs" style="opacity:.7;">({{ t.accounts_needed }}+ comptes)</span>
@@ -25,7 +26,7 @@
       {% endfor %}
     </div>
     <!-- Selected template info -->
-    <div id="tpl-info" style="display:none;margin-top:16px;padding:12px;background:#0f172a;border-radius:8px;border:1px solid #334155;">
+    <div id="tpl-info" style="display:none;margin-top:16px;padding:12px;background:#0c0c14;border-radius:8px;border:1px solid #2a2a40;">
       <div class="flex justify-between">
         <div>
           <div id="tpl-name" class="text-sm font-bold text-white"></div>
@@ -211,21 +212,22 @@
 
 <!-- Template auto-fill JS -->
 <script>
-function applyTemplate(t) {
+var _tpls = JSON.parse(document.getElementById('tpl-data').textContent);
+function applyTpl(idx) {
+  var t = _tpls[idx];
+  if (!t) return;
   document.getElementById('f-per_wave').value = t.per_wave;
   document.getElementById('f-hours').value = t.hours_between;
   document.getElementById('f-daily_limit').value = t.daily_limit_per_account;
-  // Show info
   var info = document.getElementById('tpl-info');
   info.style.display = 'block';
   document.getElementById('tpl-name').textContent = t.name;
   document.getElementById('tpl-desc').textContent = t.description;
-  document.getElementById('tpl-result').textContent = t.result_per_day + ' · ' + t.result_per_week;
-  var risk = t.risk_level;
+  document.getElementById('tpl-result').textContent = (t.result_per_day || '') + ' · ' + (t.result_per_week || '');
+  var risk = t.risk_level || '';
   var riskEl = document.getElementById('tpl-risk');
   riskEl.textContent = 'Risque: ' + risk;
-  riskEl.style.color = risk === 'Minimal' ? '#4ade80' :
-    risk === 'Faible' ? '#4ade80' :
+  riskEl.style.color = risk === 'Minimal' || risk === 'Faible' ? '#4ade80' :
     risk.indexOf('lev') >= 0 ? '#f87171' : '#fbbf24';
 }
 </script>
