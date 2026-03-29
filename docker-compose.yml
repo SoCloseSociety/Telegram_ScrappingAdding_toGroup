@@ -8,11 +8,8 @@ services:
     environment:
       - PORT=${PORT:-8700}
     volumes:
-      # Persistent data (sessions, config, DBs, CSVs)
+      # Persistent data directory for all runtime files
       - ./data:/app/data
-      - ./config.json:/app/config.json
-      - ./auth.json:/app/auth.json
-      - ./campaign_templates.json:/app/campaign_templates.json
     working_dir: /app
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${PORT:-8700}/login')"]

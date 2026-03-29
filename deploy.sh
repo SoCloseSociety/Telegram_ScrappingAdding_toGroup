@@ -67,11 +67,17 @@ ssh $SERVER << REMOTE
 set -e
 cd ${DEPLOY_DIR}
 
-# Create config.json if not exists
-if [ ! -f config.json ]; then
-    echo '{"accounts": [], "proxies": []}' > config.json
+# Create data directory with default files
+mkdir -p data
+if [ ! -f data/config.json ]; then
+    echo '{"accounts": [], "proxies": []}' > data/config.json
     echo "  Created default config.json"
 fi
+
+# Clean up failed docker volume mounts (directories instead of files)
+for f in config.json auth.json; do
+    [ -d "\$f" ] && rm -rf "\$f"
+done
 
 # Set port in .env
 echo "PORT=${PORT}" > .env
