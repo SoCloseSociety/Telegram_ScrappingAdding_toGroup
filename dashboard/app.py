@@ -32,6 +32,20 @@ app.mount("/static", StaticFiles(directory=str(DASH / "static")), name="static")
 executor = ThreadPoolExecutor(max_workers=4)
 
 
+# ── No-cache middleware — forces browser to always fetch fresh pages ──────────
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        if "text/html" in response.headers.get("content-type", ""):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+
+app.add_middleware(NoCacheMiddleware)
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 #  AUTH SYSTEM — session-based login
 # ═══════════════════════════════════════════════════════════════════════════════
