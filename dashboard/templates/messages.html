@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% set active_page = "messages" %}
+
+{% block content %}
+<div class="space-y">
+  <div>
+    <div class="text-xl">Messages clonés</div>
+    <p class="text-sm mt-1 text-muted">{{ total_messages }} message(s) dans cloned_messages.csv</p>
+  </div>
+
+  <!-- Clone form -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">📋 Cloner les messages d'un groupe</div>
+    <form method="post" action="/messages/clone" class="flex gap-3 items-end">
+      <div style="flex:1;">
+        <label>Groupe source</label>
+        <input type="text" name="group" required placeholder="@username ou lien du groupe">
+      </div>
+      <button type="submit" class="btn btn-blue">📋 Cloner</button>
+    </form>
+  </div>
+
+  <!-- Actions -->
+  {% if total_messages > 0 %}
+  <div class="flex gap-3">
+    <form method="post" action="/messages/delete" onsubmit="return confirm('Supprimer tous les messages clonés ?')">
+      <button class="btn btn-red">🗑 Supprimer tout</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Messages table -->
+  {% if rows %}
+  <div class="card overflow-hidden">
+    <div class="card-header">
+      <span>Messages {% if q %}<span class="badge badge-blue ml-2">{{ filtered }} résultats pour "{{ q }}"</span>{% endif %}</span>
+      <form method="get" action="/messages" class="search-bar" style="width:260px;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Rechercher dans les messages...">
+      </form>
+    </div>
+    <div class="overflow-x">
+      <table>
+        <thead>
+          <tr>{% for col in header %}<th>{{ col }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            {% for cell in row %}
+            <td style="{% if loop.index == 3 %}max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;{% endif %}">
+              {{ cell or '—' }}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if total_messages > 100 and not q %}
+    <div class="px-5 py-3 text-xs text-muted" style="border-top:1px solid #334155;">
+      Affichage limité à 100 messages sur {{ total_messages }}
+    </div>
+    {% endif %}
+  </div>
+  {% elif total_messages == 0 %}
+  <div class="card empty">
+    <div class="empty-icon">💬</div>
+    <div class="empty-text">Aucun message cloné.</div>
+    <div class="empty-sub">Clonez les messages d'un groupe ci-dessus.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

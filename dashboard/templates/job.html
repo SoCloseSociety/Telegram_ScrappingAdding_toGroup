@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+{% set active_page = "" %}
+
+{% block content %}
+<div class="space-y">
+
+  <div class="flex items-center gap-3">
+    <a href="javascript:history.back()" class="btn btn-slate btn-sm">← Retour</a>
+    <div>
+      <div class="text-xl">{{ job.title if job.title else "Opération en cours" }}</div>
+      <div class="text-xs mt-1 font-mono text-muted">Job ID: {{ jid }}</div>
+    </div>
+  </div>
+
+  <!-- Status badge -->
+  <div id="status-badge">
+    {% if job.status == "done" %}
+      <span class="badge badge-green">✅ Terminé</span>
+    {% elif job.status == "error" %}
+      <span class="badge badge-red">❌ Erreur</span>
+    {% else %}
+      <span class="badge badge-blue">⏳ En cours…</span>
+    {% endif %}
+  </div>
+
+  <!-- Terminal output -->
+  <div class="card overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3"
+         style="background:#0b1120;border-bottom:1px solid #334155;">
+      <span class="text-xs font-mono text-muted">● output</span>
+      <button onclick="document.getElementById('terminal').scrollTop=9999"
+              class="text-xs text-muted" style="background:none;border:none;cursor:pointer;">↓ Fin</button>
+    </div>
+    <div id="terminal" class="terminal" style="height:440px;">
+      {% if job and job.lines %}
+        {% for line in job.lines %}
+          <div class="term-line">{{ line }}</div>
+        {% endfor %}
+      {% else %}
+        <div class="text-muted">En attente de sortie…</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- SSE streaming -->
+<script>
+(function() {
+  var terminal = document.getElementById('terminal');
+  var badge    = document.getElementById('status-badge');
+  var jobId    = {{ jid | tojson }};
+
+  {% if not job or job.status == "running" %}
+  var es = new EventSource('/jobs/' + jobId + '/stream');
+
+  es.onmessage = function(e) {
+    try {
+      var data = JSON.parse(e.data);
+      if (data.t === 'line') {
+        var div = document.createElement('div');
+        div.className = 'term-line';
+        var msg = data.msg;
+        if (msg.indexOf('❌') >= 0 || msg.indexOf('Error') >= 0) div.style.color = '#f87171';
+        else if (msg.indexOf('⚠') >= 0 || msg.indexOf('WARNING') >= 0) div.style.color = '#fbbf24';
+        else if (msg.indexOf('✅') >= 0 || msg.indexOf('OK') >= 0) div.style.color = '#4ade80';
+        else if (msg.indexOf('→') >= 0 || msg.indexOf('Ajout') >= 0) div.style.color = '#60a5fa';
+        else div.style.color = '#94a3b8';
+        div.textContent = msg;
+        terminal.appendChild(div);
+        terminal.scrollTop = terminal.scrollHeight;
+      } else if (data.t === 'done') {
+        es.close();
+        var ok = data.status === 'done';
+        badge.innerHTML = ok
+          ? '<span class="badge badge-green">✅ Terminé</span>'
+          : '<span class="badge badge-red">❌ Erreur</span>';
+        badge.innerHTML += '<div style="margin-top:12px;">'
+          + '<a href="/" class="btn btn-slate" style="margin-right:8px;">🏠 Accueil</a>'
+          + '<a href="/members" class="btn btn-blue">👥 Membres</a></div>';
+      }
+    } catch (err) {}
+  };
+
+  es.onerror = function() {
+    es.close();
+    badge.innerHTML = '<span class="badge badge-yellow">⚠️ Connexion SSE perdue</span>';
+  };
+  {% endif %}
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,197 @@
+{
+  "_doc": "Templates de campagnes pré-configurés — choisir en fonction du nombre de comptes disponibles",
+  "_safety_rules": {
+    "new_account_age_under_7d": "Max 3 ajouts/jour, mode ultra_safe uniquement",
+    "account_age_7d_to_30d": "Max 10 ajouts/jour, mode safe ou conservative",
+    "account_age_over_30d": "Max 20 ajouts/jour, mode standard",
+    "account_with_history": "Max 30 ajouts/jour, mode aggressive possible si compte très ancien",
+    "golden_rule": "Ne JAMAIS dépasser 50 ajouts/jour/compte même avec un vieux compte",
+    "daily_total_rule": "Telegram surveille aussi les ajouts/groupe — max ~50-80/jour/groupe total",
+    "rest_days": "1 jour de pause tous les 3-4 jours d'activité"
+  },
+
+  "templates": [
+
+    {
+      "id": "ultra_safe_1_account",
+      "name": "🐢 Ultra Safe — 1 compte",
+      "description": "Pour démarrer avec un seul compte neuf. Très lent mais 0 risque de ban.",
+      "accounts_needed": 1,
+      "per_wave": 3,
+      "hours_between": 8,
+      "daily_limit_per_account": 3,
+      "intra_wave_delay_min": 90,
+      "intra_wave_delay_max": 150,
+      "silent": true,
+      "result_per_day": "~3 membres/jour",
+      "result_per_week": "~21 membres/semaine",
+      "risk_level": "Minimal",
+      "best_for": "Compte frais (<7 jours), première utilisation, test"
+    },
+
+    {
+      "id": "safe_1_account",
+      "name": "🛡️ Safe — 1 compte établi",
+      "description": "Pour un seul compte avec de l'historique (>30 jours, activité régulière).",
+      "accounts_needed": 1,
+      "per_wave": 5,
+      "hours_between": 6,
+      "daily_limit_per_account": 10,
+      "intra_wave_delay_min": 60,
+      "intra_wave_delay_max": 90,
+      "silent": true,
+      "result_per_day": "~10 membres/jour",
+      "result_per_week": "~60 membres/semaine",
+      "risk_level": "Faible",
+      "best_for": "Compte principal actif, groupe personnel"
+    },
+
+    {
+      "id": "conservative_3_accounts",
+      "name": "⚖️ Conservateur — 3 comptes",
+      "description": "Rotation entre 3 comptes, rythme modéré. Bon équilibre vitesse/sécurité.",
+      "accounts_needed": 3,
+      "per_wave": 5,
+      "hours_between": 5,
+      "daily_limit_per_account": 12,
+      "intra_wave_delay_min": 50,
+      "intra_wave_delay_max": 80,
+      "silent": true,
+      "result_per_day": "~30-36 membres/jour",
+      "result_per_week": "~180-210 membres/semaine",
+      "risk_level": "Modéré",
+      "best_for": "Croissance régulière, comptes de 2+ semaines"
+    },
+
+    {
+      "id": "standard_5_accounts",
+      "name": "🚀 Standard — 5 comptes",
+      "description": "Configuration recommandée. 5 comptes en rotation, bon débit sans risque excessif.",
+      "accounts_needed": 5,
+      "per_wave": 5,
+      "hours_between": 4,
+      "daily_limit_per_account": 15,
+      "intra_wave_delay_min": 45,
+      "intra_wave_delay_max": 75,
+      "silent": true,
+      "result_per_day": "~50-60 membres/jour",
+      "result_per_week": "~300-350 membres/semaine",
+      "risk_level": "Modéré",
+      "best_for": "Production, comptes établis, objectif 1000+ membres"
+    },
+
+    {
+      "id": "growth_10_accounts",
+      "name": "📈 Croissance — 10 comptes",
+      "description": "10 comptes en rotation pour une croissance rapide mais contrôlée.",
+      "accounts_needed": 10,
+      "per_wave": 8,
+      "hours_between": 3,
+      "daily_limit_per_account": 15,
+      "intra_wave_delay_min": 40,
+      "intra_wave_delay_max": 65,
+      "silent": true,
+      "result_per_day": "~80-100 membres/jour",
+      "result_per_week": "~500-600 membres/semaine",
+      "risk_level": "Modéré-élevé",
+      "best_for": "Scaling sérieux, comptes matures (>1 mois)"
+    },
+
+    {
+      "id": "aggressive_20_accounts",
+      "name": "⚡ Agressif — 20 comptes",
+      "description": "20+ comptes, rythme soutenu. Nécessite des comptes bien rodés.",
+      "accounts_needed": 20,
+      "per_wave": 10,
+      "hours_between": 2,
+      "daily_limit_per_account": 20,
+      "intra_wave_delay_min": 30,
+      "intra_wave_delay_max": 55,
+      "silent": true,
+      "result_per_day": "~150-200 membres/jour",
+      "result_per_week": "~900-1200 membres/semaine",
+      "risk_level": "Élevé",
+      "best_for": "Campagne massive, comptes anciens (>3 mois), utilisation avec proxies"
+    }
+
+  ],
+
+  "scheduling_patterns": {
+    "workday": {
+      "name": "Heures de bureau",
+      "description": "Ajouts entre 9h-18h uniquement — imite un comportement humain",
+      "active_hours": [9, 18],
+      "best_for": "Groupes professionnels/business"
+    },
+    "evening": {
+      "name": "Soirée",
+      "description": "Ajouts entre 18h-23h — quand les gens sont actifs sur Telegram",
+      "active_hours": [18, 23],
+      "best_for": "Groupes communautaires/crypto"
+    },
+    "night_owl": {
+      "name": "Nuit",
+      "description": "Ajouts entre 1h-6h — moins de surveillance, mais utilisateurs moins actifs",
+      "active_hours": [1, 6],
+      "best_for": "Volume pur, pas besoin d'engagement immédiat"
+    },
+    "spread": {
+      "name": "Étalé 24h",
+      "description": "Vagues espacées sur 24h — le plus naturel",
+      "active_hours": [0, 24],
+      "best_for": "Groupes internationaux, usage général"
+    }
+  },
+
+  "account_warming": {
+    "description": "Avant d'utiliser un compte pour des ajouts, réchauffez-le pendant 3-7 jours",
+    "steps": [
+      "Jour 1-2: Rejoindre 5-10 groupes publics, lire des messages",
+      "Jour 2-3: Envoyer des messages dans 2-3 groupes (participation réelle)",
+      "Jour 3-4: Ajouter 1-2 contacts connus manuellement",
+      "Jour 4-5: Rejoindre 5 groupes supplémentaires, interagir",
+      "Jour 5-7: Commencer avec le template 'ultra_safe' (3/jour)",
+      "Après 2 semaines sans problème: passer au template 'safe' (10/jour)",
+      "Après 1 mois: passer au template 'standard' (15/jour)"
+    ]
+  },
+
+  "proxy_strategy": {
+    "description": "Utiliser des proxies réduit le risque de ban par IP",
+    "rules": [
+      "1 proxy par 3-5 comptes maximum",
+      "Utiliser des proxies résidentiels (pas datacenter)",
+      "Même pays que le numéro de téléphone si possible",
+      "Alterner les proxies entre les vagues",
+      "Ne JAMAIS utiliser des proxies gratuits/publics"
+    ],
+    "recommended_providers": [
+      "SOCKS5 résidentiel (rotatif)",
+      "Mobile 4G proxy (meilleur mais plus cher)"
+    ]
+  },
+
+  "emergency_procedures": {
+    "peer_flood_error": {
+      "action": "STOP immédiat, compte blacklisté 24h automatiquement",
+      "recovery": "Attendre 24-48h, ne pas utiliser le compte du tout pendant ce temps",
+      "prevention": "Respecter les limites journalières, utiliser le mode silencieux"
+    },
+    "flood_wait_under_5min": {
+      "action": "Attente automatique + reprise",
+      "meaning": "Normal, Telegram demande de ralentir"
+    },
+    "flood_wait_over_30min": {
+      "action": "Pause le compte pour la journée",
+      "meaning": "Le compte est surveillé, il faut le reposer"
+    },
+    "account_banned": {
+      "action": "Supprimer le compte du système, ne pas réutiliser",
+      "prevention": "Ne jamais dépasser 50 ajouts/jour, utiliser des comptes réchauffés"
+    },
+    "multiple_accounts_flood": {
+      "action": "ARRÊTER toute la campagne 24h",
+      "meaning": "Telegram détecte un pattern, changer de stratégie (délais plus longs, moins d'ajouts)"
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% set active_page = "members" %}
+
+{% block content %}
+<div class="space-y">
+  <div>
+    <div class="text-xl">Membres</div>
+    <p class="text-sm mt-1 text-muted">{{ members }} membres dans members.csv</p>
+  </div>
+
+  <!-- Operations grid -->
+  <div class="grid-3">
+
+    <!-- Scrape -->
+    <div class="card p-5">
+      <div class="text-sm font-semibold text-white mb-4">🕵️ Scraper un groupe</div>
+      <form method="post" action="/members/scrape" class="form-row">
+        <div><label>Groupe</label><input type="text" name="group" required placeholder="@username ou lien"></div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" name="online_only" value="1" id="oo">
+          <label for="oo" style="margin:0">En ligne seulement</label>
+        </div>
+        <button type="submit" class="btn btn-blue btn-full">🕵️ Scraper</button>
+      </form>
+    </div>
+
+    <!-- Add -->
+    <div class="card p-5">
+      <div class="text-sm font-semibold text-white mb-4">➕ Ajout rapide</div>
+      <form method="post" action="/members/add" class="form-row">
+        <div><label>Groupe cible</label><input type="text" name="group" required placeholder="@username"></div>
+        <div><label>CSV</label>
+        <select name="csv_file">{% for f in csv_files %}<option value="{{ f }}" {% if f == 'members.csv' %}selected{% endif %}>{{ f }}</option>{% endfor %}</select></div>
+        <div class="grid-2">
+          <div><label>Nombre</label><input type="number" name="num_members" placeholder="Tous" min="1"></div>
+          <div><label>Mode</label>
+          <select name="mode"><option value="safe">Safe</option><option value="normal" selected>Normal</option><option value="turbo">Turbo</option></select></div>
+        </div>
+        <button type="submit" class="btn btn-green btn-full">➕ Ajouter</button>
+      </form>
+    </div>
+
+    <!-- Wave add -->
+    <div class="card p-5">
+      <div class="text-sm font-semibold text-white mb-4">🌊 Ajout par vagues</div>
+      <form method="post" action="/members/wave-add" class="form-row">
+        <div><label>Groupe cible</label><input type="text" name="group" required placeholder="@username"></div>
+        <div><label>CSV</label>
+        <select name="csv_file">{% for f in csv_files %}<option value="{{ f }}" {% if f == 'members.csv' %}selected{% endif %}>{{ f }}</option>{% endfor %}</select></div>
+        <div class="grid-3">
+          <div><label>Total</label><input type="number" name="total" value="20" min="1"></div>
+          <div><label>/vague</label><input type="number" name="per_wave" value="5" min="1"></div>
+          <div><label>Pause (h)</label><input type="number" name="hours" value="5" min="1"></div>
+        </div>
+        <button type="submit" class="btn btn-purple btn-full">🌊 Lancer les vagues</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tools row -->
+  <div class="flex flex-wrap gap-3">
+    <form method="post" action="/members/filter"><button class="btn btn-orange">🚮 Filtrer bots/spam</button></form>
+    <form method="post" action="/members/stats"><button class="btn btn-slate">📊 Stats</button></form>
+    <form method="post" action="/members/delete-csv" onsubmit="return confirm('Supprimer members.csv ?')">
+      <button class="btn btn-red">🗑 Supprimer CSV</button></form>
+  </div>
+
+  <!-- Search + Table -->
+  {% if rows or q %}
+  <div class="card overflow-hidden">
+    <div class="card-header">
+      <span>members.csv {% if q %}<span class="badge badge-blue ml-2">{{ total_filtered }} résultats pour "{{ q }}"</span>{% endif %}</span>
+      <form method="get" action="/members" class="search-bar" style="width:260px;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Rechercher...">
+      </form>
+    </div>
+    <div class="overflow-x">
+      <table>
+        <thead><tr>{% for col in header %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>{% for cell in row %}<td>{{ cell or '—' }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if members > 100 and not q %}
+    <div class="px-5 py-3 text-xs text-muted" style="border-top:1px solid #334155;">
+      Affichage limité à 100 lignes sur {{ members }}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="card empty"><div class="empty-icon">👥</div>
+    <div class="empty-text">members.csv est vide ou introuvable.</div>
+    <div class="empty-sub">Lancez un scrape pour le remplir.</div></div>
+  {% endif %}
+</div>
+{% endblock %}

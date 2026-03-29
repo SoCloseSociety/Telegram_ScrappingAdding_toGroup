@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% set active_page = "logs" %}
+
+{% block content %}
+<div class="space-y">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="text-xl">Logs d'activité</div>
+      <p class="text-sm mt-1 text-muted">{{ lines|length }} entrées (plus récentes en premier)</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/logs?n=50"  class="btn btn-slate btn-sm">50</a>
+      <a href="/logs?n=200" class="btn btn-slate btn-sm">200</a>
+      <a href="/logs?n=500" class="btn btn-slate btn-sm">500</a>
+    </div>
+  </div>
+
+  <div class="card overflow-hidden">
+    <div class="terminal" style="max-height:680px;">
+      {% if lines %}
+        {% for line in lines %}
+          <div style="color:
+            {%- if 'ERROR' in line %} #f87171
+            {%- elif 'WARNING' in line %} #fbbf24
+            {%- elif 'INFO' in line %} #64748b
+            {%- else %} #94a3b8
+            {%- endif %};">{{ line }}</div>
+        {% endfor %}
+      {% else %}
+        <div style="color:#475569;">Aucun log enregistré.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

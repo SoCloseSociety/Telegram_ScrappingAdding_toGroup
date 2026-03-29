@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% set active_page = "proxies" %}
+
+{% block content %}
+<div class="space-y">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="text-xl">Proxies</div>
+      <p class="text-sm mt-1 text-muted">{{ proxy_list|length }} proxy(s) configuré(s)</p>
+    </div>
+    <form method="post" action="/proxies/test-all">
+      <button class="btn btn-blue" {% if not proxy_list %}disabled{% endif %}>🧪 Tester tous</button>
+    </form>
+  </div>
+
+  <!-- Add form -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">➕ Ajouter un proxy</div>
+    <form method="post" action="/proxies/add" class="flex gap-3 items-end">
+      <div style="flex:1;">
+        <label>Proxy (ip:port ou ip:port:user:pass)</label>
+        <input type="text" name="proxy" required placeholder="1.2.3.4:1080">
+      </div>
+      <button type="submit" class="btn btn-green">➕ Ajouter</button>
+    </form>
+  </div>
+
+  <!-- Proxy list -->
+  <div class="card overflow-hidden">
+    {% if proxy_list %}
+    <table>
+      <thead><tr><th>#</th><th>Proxy</th><th>Type</th><th class="text-right">Actions</th></tr></thead>
+      <tbody>
+        {% for p in proxy_list %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td class="font-mono">{{ p }}</td>
+          <td class="text-muted">{{ 'auth' if p.count(':') == 3 else 'simple' }}</td>
+          <td>
+            <div class="flex justify-end gap-2">
+              <form method="post" action="/proxies/{{ loop.index0 }}/delete"
+                    onsubmit="return confirm('Supprimer ce proxy ?')">
+                <button class="btn btn-red btn-sm">🗑</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><div class="empty-icon">🌐</div>
+      <div class="empty-text">Aucun proxy configuré.</div>
+      <div class="empty-sub">Ajoutez-en un ci-dessus.</div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

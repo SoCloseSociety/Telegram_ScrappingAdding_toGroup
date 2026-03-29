@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Telegram Manager{% endblock %}</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0f172a; color:#e2e8f0; font-family:system-ui,-apple-system,sans-serif;
+           display:flex; height:100vh; overflow:hidden; }
+    a { color:inherit; text-decoration:none; }
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-track { background:#1e293b; }
+    ::-webkit-scrollbar-thumb { background:#475569; border-radius:4px; }
+
+    /* ── Sidebar ── */
+    .sidebar { width:220px; flex-shrink:0; background:#0b1120;
+               border-right:1px solid #1e293b; display:flex; flex-direction:column;
+               transition:left .25s; z-index:100; }
+    .sidebar-logo { padding:16px; border-bottom:1px solid #1e293b; }
+    .sidebar-logo h1 { font-size:15px; font-weight:700; color:#60a5fa; }
+    .sidebar-logo p { font-size:11px; color:#475569; margin-top:2px; }
+    .sidebar-nav { flex:1; padding:12px; display:flex; flex-direction:column; gap:2px; overflow-y:auto; }
+    .sidebar-sep { font-size:10px; color:#334155; text-transform:uppercase; letter-spacing:1px;
+                   padding:12px 12px 4px; }
+    .sidebar-footer { padding:12px; border-top:1px solid #1e293b; font-size:11px; color:#475569; }
+    .sidebar-footer > div { margin-bottom:6px; }
+    .nav-link { display:flex; align-items:center; gap:8px; padding:8px 12px;
+                border-radius:8px; font-size:13px; color:#94a3b8; transition:all .15s; }
+    .nav-link:hover { background:#1e293b; color:#e2e8f0; }
+    .nav-link.active { background:#1d4ed8; color:#fff; }
+
+    /* ── Mobile ── */
+    .menu-toggle { display:none; position:fixed; top:12px; left:12px; z-index:200;
+                   background:#1e293b; border:1px solid #334155; color:#e2e8f0;
+                   border-radius:8px; padding:8px 12px; font-size:16px; cursor:pointer; }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99; }
+    @media (max-width:768px) {
+      .menu-toggle { display:block; }
+      .sidebar { position:fixed; left:-230px; height:100vh; }
+      .sidebar.open { left:0; }
+      .sidebar-overlay.open { display:block; }
+      .main { padding:16px !important; padding-top:56px !important; }
+    }
+
+    /* ── Main ── */
+    .main { flex:1; overflow-y:auto; padding:28px 32px; }
+
+    /* ── Cards ── */
+    .card { background:#1e293b; border:1px solid #334155; border-radius:12px; }
+    .card-header { padding:14px 20px; border-bottom:1px solid #334155;
+                   font-size:13px; font-weight:600; color:#fff;
+                   display:flex; align-items:center; justify-content:space-between; }
+
+    /* ── Grid ── */
+    .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+    @media (max-width:1100px) { .grid-4 { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:768px) { .grid-4,.grid-3,.grid-2 { grid-template-columns:1fr; } }
+
+    /* ── Spacing ── */
+    .space-y > * + * { margin-top:16px; }
+    .space-y-sm > * + * { margin-top:6px; }
+    .p-5 { padding:20px; } .p-4 { padding:16px; } .p-8 { padding:32px; }
+    .px-5 { padding-left:20px; padding-right:20px; }
+    .py-3 { padding-top:12px; padding-bottom:12px; }
+    .mt-1{margin-top:4px;} .mt-2{margin-top:8px;} .mt-4{margin-top:16px;}
+    .mb-2{margin-bottom:8px;} .mb-4{margin-bottom:16px;} .ml-2{margin-left:8px;}
+    .gap-2{gap:8px;} .gap-3{gap:12px;}
+
+    /* ── Typography ── */
+    .text-xl{font-size:20px;font-weight:700;color:#fff;}
+    .text-lg{font-size:17px;font-weight:700;}
+    .text-3xl{font-size:30px;font-weight:700;}
+    .text-sm{font-size:13px;} .text-xs{font-size:11px;}
+    .font-mono{font-family:'Fira Code','Cascadia Code',monospace;}
+    .font-semibold{font-weight:600;} .font-bold{font-weight:700;}
+    .text-white{color:#fff;} .text-muted{color:#64748b;}
+    .text-green{color:#4ade80;} .text-blue{color:#60a5fa;}
+    .text-red{color:#f87171;} .text-yellow{color:#fbbf24;}
+    .text-center{text-align:center;} .text-right{text-align:right;}
+
+    /* ── Buttons ── */
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px;
+           border-radius:8px; font-size:12px; font-weight:500;
+           cursor:pointer; border:none; transition:opacity .15s; color:#fff; }
+    .btn:hover { opacity:.85; }
+    .btn-blue{background:#2563eb;} .btn-green{background:#16a34a;}
+    .btn-red{background:#dc2626;} .btn-orange{background:#ea580c;}
+    .btn-slate{background:#475569;} .btn-purple{background:#7c3aed;}
+    .btn-sm{padding:4px 10px;font-size:11px;}
+    .btn-full{width:100%;justify-content:center;}
+
+    /* ── Badges ── */
+    .badge { display:inline-block; padding:2px 8px; border-radius:99px;
+             font-size:11px; font-weight:600; }
+    .badge-green{background:#14532d;color:#4ade80;}
+    .badge-red{background:#450a0a;color:#f87171;}
+    .badge-yellow{background:#451a03;color:#fbbf24;}
+    .badge-blue{background:#1e3a5f;color:#60a5fa;}
+
+    /* ── Forms ── */
+    input,select,textarea { background:#0f172a; border:1px solid #334155; color:#e2e8f0;
+      border-radius:8px; padding:7px 12px; font-size:13px; width:100%; font-family:inherit; }
+    input:focus,select:focus,textarea:focus {
+      outline:none; border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.2); }
+    input[type=checkbox]{width:auto;} textarea{resize:vertical;min-height:60px;}
+    label { font-size:12px; color:#94a3b8; display:block; margin-bottom:4px; }
+    .form-row { display:flex; flex-direction:column; gap:12px; }
+
+    /* ── Tables ── */
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th{text-align:left;padding:8px 12px;color:#64748b;font-weight:500;border-bottom:1px solid #334155;}
+    td{padding:8px 12px;border-bottom:1px solid #1e293b;color:#cbd5e1;}
+    tr:last-child td{border-bottom:none;} tr:hover td{background:rgba(255,255,255,.02);}
+
+    /* ── Flex ── */
+    .flex{display:flex;} .flex-wrap{flex-wrap:wrap;}
+    .items-center{align-items:center;} .items-start{align-items:start;}
+    .justify-between{justify-content:space-between;} .justify-end{justify-content:flex-end;}
+    .overflow-x{overflow-x:auto;} .overflow-hidden{overflow:hidden;}
+
+    /* ── Code / Terminal ── */
+    code{font-family:monospace;font-size:12px;background:#0f172a;color:#60a5fa;padding:2px 6px;border-radius:4px;}
+    .terminal{background:#0b1120;padding:16px;font-family:monospace;font-size:11px;overflow-y:auto;line-height:1.6;}
+
+    /* ── Toasts ── */
+    #toasts { position:fixed; top:16px; right:16px; z-index:999; display:flex;
+              flex-direction:column; gap:8px; pointer-events:none; }
+    .toast { pointer-events:auto; padding:10px 18px; border-radius:10px; font-size:13px;
+             font-weight:500; box-shadow:0 4px 24px rgba(0,0,0,.4);
+             animation: toast-in .3s ease-out, toast-out .3s ease-in 3.5s forwards; }
+    .toast-success { background:#14532d; color:#4ade80; border:1px solid #166534; }
+    .toast-error   { background:#450a0a; color:#f87171; border:1px solid #7f1d1d; }
+    .toast-warning { background:#451a03; color:#fbbf24; border:1px solid #78350f; }
+    .toast-info    { background:#1e3a5f; color:#60a5fa; border:1px solid #1e40af; }
+    @keyframes toast-in  { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:none} }
+    @keyframes toast-out { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
+
+    /* ── Empty state ── */
+    .empty { padding:48px 20px; text-align:center; color:#64748b; }
+    .empty-icon { font-size:36px; margin-bottom:12px; }
+    .empty-text { font-size:13px; }
+    .empty-sub { font-size:11px; margin-top:6px; }
+
+    /* ── Pill tabs ── */
+    .tabs { display:flex; gap:4px; background:#0f172a; padding:4px; border-radius:10px;
+            width:fit-content; }
+    .tab { padding:6px 14px; border-radius:8px; font-size:12px; color:#94a3b8;
+           cursor:pointer; border:none; background:none; transition:.15s; }
+    .tab:hover { color:#e2e8f0; }
+    .tab.active { background:#1e293b; color:#fff; font-weight:600; }
+
+    /* ── Search ── */
+    .search-bar { position:relative; }
+    .search-bar input { padding-left:36px; }
+    .search-bar::before { content:'🔍'; position:absolute; left:12px; top:50%;
+                          transform:translateY(-50%); font-size:13px; }
+  </style>
+</head>
+<body>
+
+  <!-- Mobile hamburger -->
+  <button class="menu-toggle" id="menu-toggle">☰</button>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Toast container -->
+  <div id="toasts"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h1>🤖 TG Manager</h1>
+      <p>Dashboard v2</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="/"         class="nav-link {{ 'active' if active_page == 'home' }}">📊 Vue d'ensemble</a>
+
+      <div class="sidebar-sep">Opérations</div>
+      <a href="/campaigns" class="nav-link {{ 'active' if active_page == 'campaigns' }}">🚀 Campagnes</a>
+      <a href="/members"  class="nav-link {{ 'active' if active_page == 'members' }}">👥 Membres</a>
+      <a href="/groups"   class="nav-link {{ 'active' if active_page == 'groups' }}">🏠 Groupes</a>
+      <a href="/messages"  class="nav-link {{ 'active' if active_page == 'messages' }}">💬 Messages</a>
+
+      <div class="sidebar-sep">Configuration</div>
+      <a href="/accounts" class="nav-link {{ 'active' if active_page == 'accounts' }}">👤 Comptes</a>
+      <a href="/proxies"  class="nav-link {{ 'active' if active_page == 'proxies' }}">🌐 Proxies</a>
+
+      <div class="sidebar-sep">Données</div>
+      <a href="/csv"      class="nav-link {{ 'active' if active_page == 'csv' }}">📁 Fichiers CSV</a>
+      <a href="/logs"     class="nav-link {{ 'active' if active_page == 'logs' }}">📋 Logs</a>
+      <a href="/jobs"     class="nav-link {{ 'active' if active_page == 'jobs' }}">⚙️ Jobs</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div>👥 <span style="color:#4ade80;">{{ members }}</span> membres</div>
+      <div>👤 <span style="color:#60a5fa;">{{ active_accounts }}/{{ total_accounts }}</span> comptes</div>
+      <div>🌐 <span style="color:#94a3b8;">{{ proxies }}</span> proxies</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- JS: sidebar toggle + toasts -->
+  <script>
+    // Mobile sidebar
+    var sb = document.getElementById('sidebar');
+    var ov = document.getElementById('sidebar-overlay');
+    document.getElementById('menu-toggle').onclick = function() {
+      sb.classList.toggle('open');
+      ov.classList.toggle('open');
+    };
+    ov.onclick = function() {
+      sb.classList.remove('open');
+      ov.classList.remove('open');
+    };
+
+    // Toast system
+    function showToast(msg, type) {
+      var c = document.getElementById('toasts');
+      var d = document.createElement('div');
+      d.className = 'toast toast-' + (type || 'info');
+      d.textContent = msg;
+      c.appendChild(d);
+      setTimeout(function(){ d.remove(); }, 4000);
+    }
+    // Read toast from URL params
+    (function(){
+      var p = new URLSearchParams(window.location.search);
+      if (p.get('toast')) {
+        showToast(p.get('toast'), p.get('tt') || 'success');
+        // Clean URL
+        var u = new URL(window.location);
+        u.searchParams.delete('toast');
+        u.searchParams.delete('tt');
+        history.replaceState(null, '', u.pathname + u.search);
+      }
+    })();
+  </script>
+
+</body>
+</html>

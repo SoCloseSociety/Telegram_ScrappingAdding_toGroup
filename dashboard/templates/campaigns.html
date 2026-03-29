@@ -1,0 +1,232 @@
+{% extends "layout.html" %}
+{% set active_page = "campaigns" %}
+
+{% block content %}
+<div class="space-y">
+  <div>
+    <div class="text-xl">🚀 Campagnes d'automatisation</div>
+    <p class="text-sm mt-1 text-muted">
+      {{ active_accounts }} compte(s) actif(s) · {{ campaigns|length }} campagne(s)
+    </p>
+  </div>
+
+  <!-- Template selector -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">📋 Choisir un template de configuration</div>
+    <div class="text-xs text-muted mb-4">Sélectionnez un profil adapté à votre nombre de comptes. Les valeurs du formulaire ci-dessous seront remplies automatiquement.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;" id="tpl-buttons">
+      {% for t in templates %}
+      <button class="btn {% if t.accounts_needed <= active_accounts %}btn-blue{% else %}btn-slate{% endif %}"
+              onclick="applyTemplate({{ t | tojson }})"
+              {% if t.accounts_needed > active_accounts %}title="Nécessite {{ t.accounts_needed }} comptes (vous en avez {{ active_accounts }})"{% endif %}>
+        {{ t.name }}
+        <span class="text-xs" style="opacity:.7;">({{ t.accounts_needed }}+ comptes)</span>
+      </button>
+      {% endfor %}
+    </div>
+    <!-- Selected template info -->
+    <div id="tpl-info" style="display:none;margin-top:16px;padding:12px;background:#0f172a;border-radius:8px;border:1px solid #334155;">
+      <div class="flex justify-between">
+        <div>
+          <div id="tpl-name" class="text-sm font-bold text-white"></div>
+          <div id="tpl-desc" class="text-xs text-muted mt-1"></div>
+        </div>
+        <div class="text-right">
+          <div id="tpl-result" class="text-sm text-green font-bold"></div>
+          <div id="tpl-risk" class="text-xs mt-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create campaign form -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">➕ Créer une campagne</div>
+    <form method="post" action="/campaigns/create" class="form-row" id="campaign-form">
+      <div class="grid-2">
+        <div><label>Nom de la campagne</label>
+          <input type="text" name="name" required placeholder="Ex: Bobby Call's Growth Q1"></div>
+        <div><label>Groupe cible (@username ou lien)</label>
+          <input type="text" name="group" required placeholder="@bobbycallshub"></div>
+      </div>
+      <div class="grid-4">
+        <div><label>CSV source</label>
+          <select name="csv_file">
+            {% for f in csv_files %}<option value="{{ f }}" {% if f == 'members.csv' %}selected{% endif %}>{{ f }}</option>{% endfor %}
+          </select></div>
+        <div><label>Total (0=tous)</label>
+          <input type="number" name="total" id="f-total" value="0" min="0"></div>
+        <div><label>Par vague</label>
+          <input type="number" name="per_wave" id="f-per_wave" value="5" min="1" max="50"></div>
+        <div><label>Pause (heures)</label>
+          <input type="number" name="hours" id="f-hours" value="5" min="1" max="48" step="0.5"></div>
+      </div>
+      <div class="grid-4">
+        <div><label>Limite/jour/compte</label>
+          <input type="number" name="daily_limit" id="f-daily_limit" value="15" min="1" max="50"></div>
+        <div></div><div></div>
+        <div style="display:flex;align-items:flex-end;">
+          <button type="submit" class="btn btn-green btn-full">🚀 Créer la campagne</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Safety guide (collapsible) -->
+  <div class="card overflow-hidden">
+    <div class="card-header" style="cursor:pointer;" onclick="document.getElementById('safety-content').style.display=document.getElementById('safety-content').style.display==='none'?'block':'none'">
+      <span>🛡️ Guide anti-ban &amp; réchauffement de comptes</span>
+      <span class="text-xs text-muted" style="font-weight:400;">▼ cliquer pour ouvrir</span>
+    </div>
+    <div id="safety-content" style="display:none;" class="p-5">
+      <!-- Warming -->
+      <div class="mb-4">
+        <div class="text-sm font-semibold text-white mb-2">🔥 Réchauffement d'un nouveau compte (obligatoire)</div>
+        <div class="text-xs text-muted" style="line-height:1.8;">
+          <strong>Jour 1-2:</strong> Rejoindre 5-10 groupes publics, lire des messages<br>
+          <strong>Jour 2-3:</strong> Envoyer des messages dans 2-3 groupes (participation réelle)<br>
+          <strong>Jour 3-4:</strong> Ajouter 1-2 contacts connus manuellement<br>
+          <strong>Jour 4-5:</strong> Rejoindre 5 groupes de plus, interagir<br>
+          <strong>Jour 5-7:</strong> Template "Ultra Safe" (3/jour)<br>
+          <strong>Après 2 semaines:</strong> Passer à "Safe" (10/jour)<br>
+          <strong>Après 1 mois:</strong> Passer à "Standard" (15/jour)
+        </div>
+      </div>
+      <!-- Limits -->
+      <div class="mb-4">
+        <div class="text-sm font-semibold text-white mb-2">📊 Limites Telegram à connaître</div>
+        <table>
+          <thead><tr><th>Âge du compte</th><th>Max/jour</th><th>Template recommandé</th></tr></thead>
+          <tbody>
+            <tr><td>&lt; 7 jours</td><td class="text-red font-bold">3</td><td>Ultra Safe</td></tr>
+            <tr><td>7-30 jours</td><td class="text-yellow font-bold">10</td><td>Safe</td></tr>
+            <tr><td>1-3 mois</td><td class="text-green font-bold">15-20</td><td>Standard</td></tr>
+            <tr><td>&gt; 3 mois + activité</td><td class="text-green font-bold">20-30</td><td>Growth / Agressif</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Emergency -->
+      <div class="mb-4">
+        <div class="text-sm font-semibold text-white mb-2">🚨 Procédures d'urgence</div>
+        <table>
+          <thead><tr><th>Situation</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>PeerFloodError</td><td>Automatique — compte en pause 24h, les autres continuent</td></tr>
+            <tr><td>FloodWait &lt; 5min</td><td>Automatique — attend et reprend</td></tr>
+            <tr><td>FloodWait &gt; 30min</td><td>Compte mis en pause pour la journée</td></tr>
+            <tr><td>Plusieurs comptes flood en même temps</td><td class="text-red">ARRÊTER la campagne 24h minimum</td></tr>
+            <tr><td>Compte banni</td><td>Supprimer du système, ne pas réutiliser le numéro</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Proxy -->
+      <div>
+        <div class="text-sm font-semibold text-white mb-2">🌐 Stratégie proxy</div>
+        <div class="text-xs text-muted" style="line-height:1.8;">
+          • 1 proxy pour 3-5 comptes max<br>
+          • Proxies résidentiels uniquement (pas datacenter)<br>
+          • Même pays que le numéro de téléphone si possible<br>
+          • JAMAIS de proxies gratuits/publics<br>
+          • 1 jour de repos tous les 3-4 jours d'activité
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Campaign list -->
+  {% if campaigns %}
+  <div class="space-y">
+    {% for c in campaigns %}
+    <div class="card overflow-hidden" style="{% if c.status == 'running' %}border-color:#3b82f6;{% elif c.status == 'completed' %}border-color:#16a34a;{% endif %}">
+      <div class="card-header">
+        <div class="flex items-center gap-3">
+          {% if c.status == 'running' %}
+            <span class="badge badge-blue">⏳ En cours</span>
+          {% elif c.status == 'completed' %}
+            <span class="badge badge-green">✅ Terminé</span>
+          {% elif c.status == 'paused' %}
+            <span class="badge badge-yellow">⏸ En pause</span>
+          {% elif c.status == 'error' %}
+            <span class="badge badge-red">❌ Erreur</span>
+          {% else %}
+            <span class="badge" style="background:#1e293b;color:#94a3b8;">{{ c.status }}</span>
+          {% endif %}
+          <span class="font-bold text-white">{{ c.name }}</span>
+        </div>
+        <div class="flex gap-2">
+          {% if c.status != 'running' and c.status != 'completed' %}
+          <form method="post" action="/campaigns/{{ c.id }}/start">
+            <button class="btn btn-blue btn-sm">▶ Lancer</button>
+          </form>
+          {% endif %}
+          {% if c.status == 'running' %}
+          <form method="post" action="/campaigns/{{ c.id }}/pause">
+            <button class="btn btn-orange btn-sm">⏸ Pause</button>
+          </form>
+          {% endif %}
+          <a href="/campaigns/{{ c.id }}/log" class="btn btn-slate btn-sm">📋 Log</a>
+          <form method="post" action="/campaigns/{{ c.id }}/delete"
+                onsubmit="return confirm('Supprimer cette campagne ?')">
+            <button class="btn btn-red btn-sm">🗑</button>
+          </form>
+        </div>
+      </div>
+      <div class="p-5">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <div class="text-sm">→ {{ c.target }}</div>
+            <div class="text-xs text-muted mt-1">
+              CSV: {{ c.source }} · {{ c.per_wave }}/vague · {{ c.hours }}h pause · {{ c.daily }}/jour/compte
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-xl font-bold text-green">{{ c.added }}</div>
+            <div class="text-xs text-muted">/ {{ c.total }} ajoutés</div>
+          </div>
+        </div>
+        <!-- Progress bar -->
+        <div style="background:#0f172a;border-radius:8px;height:8px;overflow:hidden;">
+          <div style="background:linear-gradient(90deg,#16a34a,#4ade80);height:100%;width:{{ c.pct }}%;
+                      border-radius:8px;transition:width .5s;"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs text-muted">
+          <span>{{ c.pct|round(1) }}%</span>
+          <span>✅{{ c.added }}  ℹ️{{ c.already }}  🔒{{ c.privacy }}  ❌{{ c.errors }}</span>
+        </div>
+        {% if c.last_run %}
+        <div class="text-xs text-muted mt-2">Dernier run: {{ c.last_run[:16] }}</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty">
+    <div class="empty-icon">🚀</div>
+    <div class="empty-text">Aucune campagne créée.</div>
+    <div class="empty-sub">Choisissez un template ci-dessus puis créez votre première campagne.</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Template auto-fill JS -->
+<script>
+function applyTemplate(t) {
+  document.getElementById('f-per_wave').value = t.per_wave;
+  document.getElementById('f-hours').value = t.hours_between;
+  document.getElementById('f-daily_limit').value = t.daily_limit_per_account;
+  // Show info
+  var info = document.getElementById('tpl-info');
+  info.style.display = 'block';
+  document.getElementById('tpl-name').textContent = t.name;
+  document.getElementById('tpl-desc').textContent = t.description;
+  document.getElementById('tpl-result').textContent = t.result_per_day + ' · ' + t.result_per_week;
+  var risk = t.risk_level;
+  var riskEl = document.getElementById('tpl-risk');
+  riskEl.textContent = 'Risque: ' + risk;
+  riskEl.style.color = risk === 'Minimal' ? '#4ade80' :
+    risk === 'Faible' ? '#4ade80' :
+    risk.indexOf('lev') >= 0 ? '#f87171' : '#fbbf24';
+}
+</script>
+{% endblock %}

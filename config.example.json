@@ -1,0 +1,12 @@
+{
+    "accounts": [
+        {
+            "api_id": "YOUR_API_ID",
+            "api_hash": "YOUR_API_HASH",
+            "phone": "+1234567890",
+            "blacklisted": false,
+            "blacklist_time": null
+        }
+    ],
+    "proxies": []
+}

@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% set active_page = "groups" %}
+
+{% block content %}
+<div class="space-y">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="text-xl">Groupes Telegram</div>
+      <p class="text-sm mt-1 text-muted">{{ groups|length }} groupe(s) en cache</p>
+    </div>
+    <form method="post" action="/groups/list">
+      <button class="btn btn-blue">🔄 Charger mes groupes</button>
+    </form>
+  </div>
+
+  <!-- Group info lookup -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">🔍 Infos d'un groupe</div>
+    <form method="post" action="/groups/info" class="flex gap-3 items-end">
+      <div style="flex:1;">
+        <label>Groupe (nom / @username / ID / lien)</label>
+        <input type="text" name="group" required placeholder="@username ou https://t.me/...">
+      </div>
+      <button type="submit" class="btn btn-blue">🔍 Info</button>
+    </form>
+  </div>
+
+  <!-- Groups table -->
+  {% if groups %}
+  <div class="card overflow-hidden">
+    <div class="card-header">
+      <span>Mes groupes</span>
+      <span class="text-xs text-muted" style="font-weight:400;">triés par membres</span>
+    </div>
+    <div class="overflow-x">
+      <table>
+        <thead>
+          <tr>
+            <th>Groupe</th>
+            <th>Membres</th>
+            <th>Type</th>
+            <th>Rôle</th>
+            <th>Ajout</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in groups %}
+          <tr>
+            <td>
+              <span style="color:#e2e8f0;">{{ g.title }}</span>
+              {% if g.username %}<span class="text-xs text-muted ml-2">@{{ g.username }}</span>{% endif %}
+            </td>
+            <td class="font-mono text-green">{{ g.members or '?' }}</td>
+            <td><span class="text-xs text-muted">{{ g.type }}</span></td>
+            <td>
+              {% if g.creator %}<span class="badge badge-green">👑 Créateur</span>
+              {% elif g.admin %}<span class="badge badge-blue">⭐ Admin</span>
+              {% else %}<span class="text-xs text-muted">👤 Membre</span>{% endif %}
+            </td>
+            <td>
+              {% if g.can_add %}
+                <span class="badge badge-green">✓</span>
+              {% else %}
+                <span class="text-xs text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card empty">
+    <div class="empty-icon">🏠</div>
+    <div class="empty-text">Aucun groupe en cache.</div>
+    <div class="empty-sub">Cliquez sur "Charger mes groupes" pour scanner votre compte.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

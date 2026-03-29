@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% set active_page = "jobs" %}
+
+{% block content %}
+<div class="space-y">
+  <div>
+    <div class="text-xl">Historique des Jobs</div>
+    <p class="text-sm mt-1 text-muted">{{ jobs_list|length }} job(s)</p>
+  </div>
+
+  <div class="card overflow-hidden">
+    {% if jobs_list %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Titre</th>
+          <th>Statut</th>
+          <th>Heure</th>
+          <th>Lignes</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for j in jobs_list %}
+        <tr style="{% if j.status == 'running' %}border-left:3px solid #3b82f6;{% endif %}">
+          <td class="font-mono text-muted">{{ j.jid }}</td>
+          <td style="color:#e2e8f0;">{{ j.title or '—' }}</td>
+          <td>
+            {% if j.status == 'running' %}
+              <span class="badge badge-blue">⏳ En cours</span>
+            {% elif j.status == 'done' %}
+              <span class="badge badge-green">✅ Terminé</span>
+            {% elif j.status == 'error' %}
+              <span class="badge badge-red">❌ Erreur</span>
+            {% else %}
+              <span class="badge" style="background:#1e293b;color:#94a3b8;">{{ j.status }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted font-mono text-xs">{{ j.created_fmt }}</td>
+          <td class="text-muted">{{ j.lines_count }}</td>
+          <td class="text-right">
+            <a href="/jobs/{{ j.jid }}" class="btn btn-slate btn-sm">Voir</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">⚙️</div>
+      <div class="empty-text">Aucun job exécuté.</div>
+      <div class="empty-sub">Les opérations longues (scrape, ajout) apparaissent ici.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

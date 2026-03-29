@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% set active_page = "csv" %}
+
+{% block content %}
+<div class="space-y">
+  <div>
+    <div class="text-xl">Fichiers CSV</div>
+    <p class="text-sm mt-1 text-muted">{{ files|length }} fichier(s)</p>
+  </div>
+
+  <div class="card overflow-hidden">
+    {% if files %}
+    <table>
+      <thead><tr><th>Fichier</th><th>Lignes</th><th>Taille</th><th>Modifié</th><th class="text-right">Actions</th></tr></thead>
+      <tbody>
+        {% for f in files %}
+        <tr>
+          <td>
+            <a href="/csv/{{ f.name }}/preview" class="font-mono" style="color:#60a5fa;">{{ f.name }}</a>
+            {% if f.name == 'members.csv' %}<span class="badge badge-blue ml-2">actif</span>{% endif %}
+          </td>
+          <td class="font-mono text-green">{{ f.rows }}</td>
+          <td class="text-muted">{{ f.size }}</td>
+          <td class="text-muted">{{ f.mtime }}</td>
+          <td>
+            <div class="flex justify-end gap-2">
+              {% if f.name != 'members.csv' %}
+              <form method="post" action="/csv/{{ f.name }}/use-as-members">
+                <button class="btn btn-green btn-sm">➜ membres</button>
+              </form>
+              <form method="post" action="/csv/{{ f.name }}/delete"
+                    onsubmit="return confirm('Supprimer ' + {{ f.name | tojson }} + ' ?')">
+                <button class="btn btn-red btn-sm">🗑</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><div class="empty-icon">📁</div>
+      <div class="empty-text">Aucun fichier CSV.</div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

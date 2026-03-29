@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% set active_page = "campaigns" %}
+
+{% block content %}
+<div class="space-y">
+  <div class="flex items-center gap-3">
+    <a href="/campaigns" class="btn btn-slate btn-sm">← Campagnes</a>
+    <div>
+      <div class="text-xl">{{ campaign.name }}</div>
+      <p class="text-sm mt-1 text-muted">→ {{ campaign.target_group_title }}</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4">
+    <div class="card p-4">
+      <div class="text-xs text-muted">AJOUTÉS</div>
+      <div class="text-3xl text-green">{{ campaign.total_added }}</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs text-muted">DÉJÀ MEMBRES</div>
+      <div class="text-3xl text-blue">{{ campaign.total_already }}</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs text-muted">PRIVACY</div>
+      <div class="text-3xl text-yellow">{{ campaign.total_privacy }}</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs text-muted">ERREURS</div>
+      <div class="text-3xl text-red">{{ campaign.total_errors }}</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card p-5">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-sm text-white font-semibold">Progression</span>
+      <span class="text-sm text-muted">
+        {{ campaign.total_added }}/{{ campaign.total_target }}
+        ({{ ((campaign.total_added / campaign.total_target * 100) if campaign.total_target > 0 else 0)|round(1) }}%)
+      </span>
+    </div>
+    <div style="background:#0f172a;border-radius:8px;height:10px;overflow:hidden;">
+      {% set pct = (campaign.total_added / campaign.total_target * 100) if campaign.total_target > 0 else 0 %}
+      <div style="background:linear-gradient(90deg,#16a34a,#4ade80);height:100%;width:{{ pct }}%;border-radius:8px;"></div>
+    </div>
+    <div class="text-xs text-muted mt-2">
+      Config: {{ campaign.per_wave }}/vague · {{ campaign.hours_between }}h pause · {{ campaign.daily_limit_per_account }}/jour/compte
+      · Position: {{ campaign.offset }}
+    </div>
+  </div>
+
+  <!-- Account status -->
+  <div class="card overflow-hidden">
+    <div class="card-header">Statut des comptes</div>
+    <table>
+      <thead><tr><th>Téléphone</th><th>Statut</th><th>Ajouts aujourd'hui</th></tr></thead>
+      <tbody>
+        {% for a in acct_status %}
+        <tr>
+          <td class="font-mono">...{{ a.phone[-4:] }}</td>
+          <td>
+            {% if a.status == 'ready' %}
+              <span class="badge badge-green">✅ Prêt</span>
+            {% elif a.status == 'flood' %}
+              <span class="badge badge-red">🚫 Flood (24h)</span>
+            {% elif a.status == 'cooldown' %}
+              <span class="badge badge-yellow">⏳ Cooldown</span>
+            {% endif %}
+          </td>
+          <td class="font-mono">{{ a.daily }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add log -->
+  <div class="card overflow-hidden">
+    <div class="card-header">
+      <span>Historique des ajouts</span>
+      <span class="text-xs text-muted" style="font-weight:400;">{{ logs|length }} derniers</span>
+    </div>
+    {% if logs %}
+    <div class="overflow-x">
+      <table>
+        <thead><tr><th>Heure</th><th>Utilisateur</th><th>Compte</th><th>Statut</th><th>Erreur</th></tr></thead>
+        <tbody>
+          {% for l in logs %}
+          <tr>
+            <td class="font-mono text-muted text-xs">{{ l.time }}</td>
+            <td>{{ l.name or l.username or l.user_id }}</td>
+            <td class="font-mono text-muted">...{{ l.phone[-4:] if l.phone else '?' }}</td>
+            <td>
+              {% if l.status == 'success' %}<span class="text-green">✅</span>
+              {% elif l.status == 'already' %}<span class="text-blue">ℹ️</span>
+              {% elif l.status == 'privacy' %}<span class="text-yellow">🔒</span>
+              {% elif l.status == 'error' %}<span class="text-red">❌</span>
+              {% endif %}
+            </td>
+            <td class="text-xs text-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">
+              {{ l.error or '—' }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-text">Aucun ajout enregistré.</div>
+      <div class="empty-sub">Lancez la campagne pour voir les résultats ici.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

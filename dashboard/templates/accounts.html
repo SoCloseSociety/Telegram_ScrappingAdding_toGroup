@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% set active_page = "accounts" %}
+
+{% block content %}
+<div class="space-y">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="text-xl">Comptes Telegram</div>
+      <p class="text-sm mt-1 text-muted">
+        {{ active_accounts }} actifs · {{ blacklisted_accounts }} blacklistés · {{ total_accounts }} total
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <form method="post" action="/accounts/check-all">
+        <button class="btn btn-slate">🔍 Vérifier tous</button>
+      </form>
+      <form method="post" action="/accounts/reconnect-all">
+        <button class="btn btn-blue">🔄 Reconnecter tous</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <div class="card p-4 flex items-start gap-3" style="border-color:#1d4ed8;">
+    <span style="color:#60a5fa;font-size:18px;">ℹ️</span>
+    <div>
+      <div class="text-sm font-semibold text-white">Pour connecter un nouveau compte</div>
+      <div class="text-xs mt-1 text-muted">
+        Utilisez le CLI : <code>./run.sh</code> puis tapez <code>8</code>.
+        L'authentification Telegram nécessite un code SMS interactif.
+      </div>
+    </div>
+  </div>
+
+  <!-- Accounts table -->
+  <div class="card overflow-hidden">
+    {% if accounts %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Téléphone</th>
+          <th>API ID</th>
+          <th>Session</th>
+          <th>Statut</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in accounts %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td class="font-mono">{{ a.phone }}</td>
+          <td class="font-mono text-xs text-muted">{{ a.api_id }}</td>
+          <td>
+            {% if a.has_session %}
+              <span class="badge badge-green">● session</span>
+            {% else %}
+              <span class="badge badge-red">✕ manquant</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if a.blacklisted %}
+              <span class="badge badge-yellow">⏸ blacklisté</span>
+            {% else %}
+              <span class="badge badge-green">✓ actif</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="flex justify-end gap-2">
+              <form method="post" action="/accounts/{{ a.idx }}/reconnect">
+                <button class="btn btn-blue btn-sm" title="Reconnecter">🔄</button>
+              </form>
+              {% if a.blacklisted %}
+              <form method="post" action="/accounts/{{ a.idx }}/unblacklist">
+                <button class="btn btn-green btn-sm" title="Débloquer">▶</button>
+              </form>
+              {% else %}
+              <form method="post" action="/accounts/{{ a.idx }}/blacklist">
+                <button class="btn btn-orange btn-sm" title="Blacklister 48h">⏸</button>
+              </form>
+              {% endif %}
+              <form method="post" action="/accounts/{{ a.idx }}/delete"
+                    onsubmit="return confirm('Supprimer le compte ' + {{ a.phone | tojson }} + ' ?')">
+                <button class="btn btn-red btn-sm" title="Supprimer">🗑</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="p-8 text-center text-muted">
+      <div style="font-size:30px;margin-bottom:12px;">👤</div>
+      <div class="text-sm">Aucun compte connecté.</div>
+      <div class="text-xs mt-2">Utilisez <code>./run.sh</code> puis l'option <code>8</code>.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

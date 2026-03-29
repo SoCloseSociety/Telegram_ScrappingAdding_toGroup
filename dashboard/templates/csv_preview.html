@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% set active_page = "csv" %}
+
+{% block content %}
+<div class="space-y">
+  <div class="flex items-center gap-3">
+    <a href="/csv" class="btn btn-slate btn-sm">← Retour</a>
+    <div>
+      <div class="text-xl">{{ fname }}</div>
+      <p class="text-sm mt-1 text-muted">{{ total }} lignes · {{ size }} · modifié {{ mtime }}</p>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex gap-3">
+    {% if fname != 'members.csv' %}
+    <form method="post" action="/csv/{{ fname }}/use-as-members">
+      <button class="btn btn-green">➜ Utiliser comme members.csv</button>
+    </form>
+    <form method="post" action="/csv/{{ fname }}/delete"
+          onsubmit="return confirm('Supprimer ' + {{ fname | tojson }} + ' ?')">
+      <button class="btn btn-red">🗑 Supprimer</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Table -->
+  {% if rows %}
+  <div class="card overflow-hidden">
+    <div class="overflow-x">
+      <table>
+        <thead><tr>{% for col in header %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>{% for cell in row %}<td>{{ cell or '—' }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if total > rows|length %}
+    <div class="px-5 py-3 text-xs text-muted" style="border-top:1px solid #334155;">
+      Affichage limité à {{ rows|length }} lignes sur {{ total }}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="card empty">
+    <div class="empty-icon">📄</div>
+    <div class="empty-text">Fichier vide.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

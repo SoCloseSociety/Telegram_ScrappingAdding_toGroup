@@ -1,0 +1,63 @@
+# ══════════════════════════════════════════════════════════
+#  SENSIBLE — Ne JAMAIS commit
+# ══════════════════════════════════════════════════════════
+
+# Sessions Telegram (contient les tokens d'auth)
+*.session
+
+# Config (contient les clés API Telegram)
+config.json
+
+# Bases de données
+history.db
+automation.db
+
+# Logs
+activity.log
+
+# Progression / état
+add_progress.json
+wave_progress.json
+groups_cache.json
+
+# Rapports générés
+rapport_*.html
+
+# ══════════════════════════════════════════════════════════
+#  DONNÉES UTILISATEUR — pas dans le repo public
+# ══════════════════════════════════════════════════════════
+
+# CSVs contenant des données de membres
+members.csv
+members_*.csv
+binance_*.csv
+cloned_messages.csv
+*_filtered.csv
+*_backup*.csv
+save1.txt
+
+# ══════════════════════════════════════════════════════════
+#  SYSTÈME
+# ══════════════════════════════════════════════════════════
+
+# Environnement virtuel
+venv/
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Node (package.json legacy)
+node_modules/
+package-lock.json
+add1.py
+package.json
+save1.txt

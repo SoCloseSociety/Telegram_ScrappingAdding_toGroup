@@ -1,0 +1,7 @@
+/* Extra styles not covered by Tailwind inline */
+.w-full { width: 100%; }
+.justify-center { justify-content: center; }
+code {
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: .82em;
+}

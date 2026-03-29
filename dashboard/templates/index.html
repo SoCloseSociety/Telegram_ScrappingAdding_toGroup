@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% set active_page = "home" %}
+
+{% block content %}
+<div class="space-y">
+  <div>
+    <div class="text-xl">Vue d'ensemble</div>
+    <p class="text-sm mt-1 text-muted">État du système en temps réel</p>
+  </div>
+
+  <!-- Stats (auto-refresh every 30s) -->
+  <div class="grid-4" hx-get="/api/stats" hx-trigger="every 30s" hx-swap="innerHTML">
+    <div class="card p-5"><div class="text-xs font-semibold text-muted mb-2">COMPTES ACTIFS</div>
+    <div class="text-3xl text-blue">{{ active_accounts }}</div>
+    <div class="text-xs mt-2 text-muted">/ {{ total_accounts }} total
+      {% if blacklisted_accounts > 0 %} · <span class="text-yellow">{{ blacklisted_accounts }} blacklistés</span>{% endif %}
+    </div></div>
+    <div class="card p-5"><div class="text-xs font-semibold text-muted mb-2">MEMBRES CSV</div>
+    <div class="text-3xl text-green">{{ members }}</div>
+    <div class="text-xs mt-2 text-muted">dans members.csv</div></div>
+    <div class="card p-5"><div class="text-xs font-semibold text-muted mb-2">PROXIES</div>
+    <div class="text-3xl" style="color:#a78bfa;">{{ proxies }}</div>
+    <div class="text-xs mt-2 text-muted">configurés</div></div>
+    <div class="card p-5"><div class="text-xs font-semibold text-muted mb-2">JOBS ACTIFS</div>
+    <div class="text-3xl" style="color:{% if running_jobs > 0 %}#fbbf24{% else %}#4ade80{% endif %}">{{ running_jobs }}</div>
+    <div class="text-xs mt-2 text-muted">en cours</div></div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="card p-5">
+    <div class="text-sm font-semibold text-white mb-4">Actions rapides</div>
+    <div class="flex flex-wrap gap-3">
+      <a href="/members" class="btn btn-blue">🕵️ Scraper</a>
+      <a href="/members" class="btn btn-green">➕ Ajouter</a>
+      <a href="/groups" class="btn btn-purple">🏠 Groupes</a>
+      <a href="/accounts" class="btn btn-slate">👤 Comptes</a>
+      <a href="/csv" class="btn btn-slate">📁 CSV</a>
+      <a href="/jobs" class="btn btn-slate">⚙️ Jobs</a>
+    </div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="card">
+    <div class="card-header">Activité récente</div>
+    <div class="p-5">
+      {% if log_lines %}
+      <div class="space-y-sm">
+        {% for line in log_lines %}
+        <div style="font-family:monospace;font-size:11px;color:
+          {%- if 'ERROR' in line %}#f87171{%- elif 'WARNING' in line %}#fbbf24{%- else %}#64748b{%- endif %};">
+          {{ line }}
+        </div>
+        {% endfor %}
+      </div>
+      <a href="/logs" style="display:inline-block;margin-top:16px;font-size:11px;color:#60a5fa;">Voir tous les logs →</a>
+      {% else %}
+      <p class="text-sm text-muted">Aucune activité enregistrée.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
