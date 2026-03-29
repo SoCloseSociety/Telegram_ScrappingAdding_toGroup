@@ -125,7 +125,7 @@ Scrape members, add them to your groups with smart multi-account rotation, run a
 ### 1. Install
 
 ```bash
-git clone https://github.com/SoClosee/Telegram_ScrappingAdding_toGroup.git
+git clone https://github.com/SoCloseSociety/Telegram_ScrappingAdding_toGroup.git
 cd Telegram_ScrappingAdding_toGroup
 chmod +x install.sh run.sh run_en.sh run_dashboard.sh run_automation.sh
 ./install.sh
