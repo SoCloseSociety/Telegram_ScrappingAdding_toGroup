@@ -62,56 +62,94 @@
     </div>
 
     <!-- Tutorial -->
-    <div class="card p-5">
-      <div class="text-sm font-semibold text-white mb-4">📖 Comment connecter un compte</div>
-      <div style="font-size:12px;color:#8a8aa0;line-height:2;">
+    <div class="card p-5" style="overflow-y:auto;">
+      <div class="text-sm font-semibold text-white mb-4">📖 Guide complet — Connecter un compte</div>
+      <div style="font-size:12px;color:#8a8aa0;line-height:1.9;">
 
+        <!-- Step 1: Login to Telegram -->
         <div class="mb-4">
-          <div style="color:#fff;font-weight:600;margin-bottom:6px;">Étape 1 — Obtenir les clés API</div>
-          <div style="display:flex;gap:6px;align-items:flex-start;">
-            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">1</span>
-            <span>Aller sur <a href="https://my.telegram.org/auth" target="_blank" style="color:#f472b6;text-decoration:underline;">my.telegram.org/auth</a></span>
+          <div style="color:#f472b6;font-weight:700;font-size:13px;margin-bottom:8px;">Étape 1 — Se connecter à my.telegram.org</div>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">1</span>
+            <span>Ouvrir <a href="https://my.telegram.org/auth" target="_blank" style="color:#f472b6;text-decoration:underline;font-weight:600;">my.telegram.org/auth</a></span>
           </div>
-          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
-            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">2</span>
-            <span>Se connecter avec son numéro de téléphone</span>
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">2</span>
+            <span>Entrer votre numéro de téléphone (format international : <code>+33612345678</code>)</span>
           </div>
-          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
-            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">3</span>
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">3</span>
+            <span>Telegram vous envoie un code dans l'app → l'entrer sur le site</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">4</span>
             <span>Cliquer sur <strong style="color:#e2e8f0;">API development tools</strong></span>
           </div>
-          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
-            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">4</span>
-            <span>Créer une app (nom = ce que vous voulez)</span>
-          </div>
-          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
-            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">5</span>
-            <span>Copier l'<strong style="color:#e2e8f0;">App api_id</strong> et l'<strong style="color:#e2e8f0;">App api_hash</strong></span>
-          </div>
         </div>
 
+        <!-- Step 2: Create App -->
         <div class="mb-4">
-          <div style="color:#fff;font-weight:600;margin-bottom:6px;">Étape 2 — Connecter ici</div>
-          <div style="display:flex;gap:6px;align-items:flex-start;">
-            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">1</span>
-            <span>Coller l'API ID et API Hash dans le formulaire</span>
-          </div>
-          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
-            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">2</span>
-            <span>Entrer le numéro avec indicatif (<code>+33</code>, <code>+66</code>...)</span>
-          </div>
-          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
-            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">3</span>
-            <span>Cliquer <strong style="color:#e2e8f0;">Envoyer le code</strong> → recevoir le code SMS</span>
-          </div>
-          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
-            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">4</span>
-            <span>Entrer le code → <strong style="color:#4ade80;">compte connecté !</strong></span>
+          <div style="color:#f472b6;font-weight:700;font-size:13px;margin-bottom:8px;">Étape 2 — Créer l'application</div>
+          <div style="padding:12px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;margin-bottom:8px;">
+            <div style="color:#6a6a80;font-size:11px;margin-bottom:2px;">Si vous avez déjà une app, passez directement à l'étape 3.</div>
+            <div style="color:#e2e8f0;font-size:11px;margin-top:8px;">Remplir le formulaire <strong>"Create new application"</strong> :</div>
+            <table style="margin-top:8px;font-size:11px;width:100%;">
+              <tr><td style="color:#6a6a80;padding:3px 8px 3px 0;border:none;white-space:nowrap;">App title</td><td style="color:#e2e8f0;border:none;padding:3px 0;">N'importe quel nom (ex: <code>MyBot</code>)</td></tr>
+              <tr><td style="color:#6a6a80;padding:3px 8px 3px 0;border:none;white-space:nowrap;">Short name</td><td style="color:#e2e8f0;border:none;padding:3px 0;">5-32 caractères, lettres/chiffres (ex: <code>mybot</code>)</td></tr>
+              <tr><td style="color:#6a6a80;padding:3px 8px 3px 0;border:none;white-space:nowrap;">URL</td><td style="color:#e2e8f0;border:none;padding:3px 0;">Laisser vide ou mettre n'importe quelle URL</td></tr>
+              <tr><td style="color:#6a6a80;padding:3px 8px 3px 0;border:none;white-space:nowrap;">Platform</td><td style="color:#e2e8f0;border:none;padding:3px 0;"><strong style="color:#f472b6;">Desktop</strong> ← choisir celui-ci</td></tr>
+              <tr><td style="color:#6a6a80;padding:3px 8px 3px 0;border:none;white-space:nowrap;">Description</td><td style="color:#e2e8f0;border:none;padding:3px 0;">N'importe quoi (ex: <code>my app</code>)</td></tr>
+            </table>
+            <div style="color:#4ade80;font-size:11px;margin-top:8px;">→ Cliquer <strong>Create application</strong></div>
           </div>
         </div>
 
-        <div style="padding:10px 14px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;font-size:11px;">
-          <strong style="color:#fbbf24;">💡 Astuce :</strong> Vous pouvez utiliser les mêmes clés API (api_id/hash) pour tous vos comptes si ils partagent la même app Telegram.
+        <!-- Step 3: Copy keys -->
+        <div class="mb-4">
+          <div style="color:#f472b6;font-weight:700;font-size:13px;margin-bottom:8px;">Étape 3 — Copier les clés</div>
+          <div style="padding:12px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;">
+            <div style="color:#e2e8f0;font-size:11px;">Sur la page qui s'affiche, copier :</div>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+              <span style="background:#4a1942;color:#f472b6;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">App api_id</span>
+              <span style="color:#6a6a80;font-size:11px;">→ un nombre (ex: <code>2042631</code>)</span>
+            </div>
+            <div style="margin-top:6px;display:flex;gap:8px;align-items:center;">
+              <span style="background:#4a1942;color:#f472b6;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">App api_hash</span>
+              <span style="color:#6a6a80;font-size:11px;">→ une chaîne hex (ex: <code>bda930c...</code>)</span>
+            </div>
+            <div style="color:#fbbf24;font-size:11px;margin-top:10px;">⚠️ Ne partagez jamais ces clés publiquement !</div>
+          </div>
+        </div>
+
+        <!-- Step 4: Connect here -->
+        <div class="mb-4">
+          <div style="color:#16a34a;font-weight:700;font-size:13px;margin-bottom:8px;">Étape 4 — Connecter dans le formulaire</div>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">1</span>
+            <span>Coller <strong style="color:#e2e8f0;">API ID</strong> et <strong style="color:#e2e8f0;">API Hash</strong> dans le formulaire à gauche</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">2</span>
+            <span>Entrer le numéro avec indicatif pays (<code>+33</code> France, <code>+66</code> Thaïlande, <code>+62</code> Indonésie...)</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">3</span>
+            <span>Cliquer <strong style="color:#e2e8f0;">Envoyer le code SMS</strong> → vous recevez un code par SMS ou dans l'app Telegram</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">4</span>
+            <span>Entrer le code reçu → <strong style="color:#4ade80;">✅ Compte connecté !</strong></span>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="padding:10px 14px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;font-size:11px;">
+            <strong style="color:#fbbf24;">💡 Astuce multi-comptes :</strong> Vous pouvez réutiliser les mêmes clés API (api_id/hash) pour connecter plusieurs numéros. Pas besoin de recréer une app pour chaque compte.
+          </div>
+          <div style="padding:10px 14px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;font-size:11px;">
+            <strong style="color:#fbbf24;">💡 2FA :</strong> Si votre compte a la vérification en 2 étapes activée, le système vous demandera votre mot de passe cloud après le code SMS.
+          </div>
         </div>
 
       </div>
