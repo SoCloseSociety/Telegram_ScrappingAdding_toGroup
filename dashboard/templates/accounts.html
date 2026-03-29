@@ -22,41 +22,101 @@
   </div>
 
   <!-- Connect new account -->
-  <div class="card p-5">
-    <div class="text-sm font-semibold text-white mb-4">🔌 Connecter un nouveau compte</div>
-    {% if pending_phone %}
-      <!-- Step 2: Enter code -->
-      <div class="mb-4" style="padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:8px;">
-        <div class="text-xs text-muted">Code envoyé à <strong>{{ pending_phone }}</strong></div>
+  <div class="grid-2">
+
+    <!-- Form -->
+    <div class="card p-5">
+      <div class="text-sm font-semibold text-white mb-4">🔌 Connecter un nouveau compte</div>
+      {% if pending_phone %}
+        <!-- Step 2: Enter code -->
+        <div class="mb-4" style="padding:10px 14px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;">
+          <div class="text-xs text-muted">📨 Code envoyé à <strong style="color:#f472b6;">{{ pending_phone }}</strong></div>
+          <div class="text-xs text-muted mt-1">Vérifiez vos SMS ou l'app Telegram.</div>
+        </div>
+        <form method="post" action="/accounts/connect/verify" class="form-row">
+          <input type="hidden" name="phone" value="{{ pending_phone }}">
+          <input type="hidden" name="api_id" value="{{ pending_api_id }}">
+          <input type="hidden" name="api_hash" value="{{ pending_api_hash }}">
+          <input type="hidden" name="phone_hash" value="{{ pending_phone_hash }}">
+          <div>
+            <label>Code reçu par SMS/Telegram</label>
+            <input type="text" name="code" required autofocus placeholder="12345" style="font-size:18px;letter-spacing:4px;text-align:center;">
+          </div>
+          <button type="submit" class="btn btn-green btn-full">✅ Vérifier le code</button>
+          <a href="/accounts" class="text-xs text-muted" style="text-align:center;display:block;margin-top:8px;">← Recommencer</a>
+        </form>
+      {% else %}
+        <!-- Step 1: Enter credentials -->
+        <form method="post" action="/accounts/connect/send-code" class="form-row">
+          <div class="grid-2">
+            <div><label>API ID</label><input type="text" name="api_id" required placeholder="2042631"></div>
+            <div><label>API Hash</label><input type="text" name="api_hash" required placeholder="bda930cae9e8b4ac..."></div>
+          </div>
+          <div>
+            <label>Numéro de téléphone (format international)</label>
+            <input type="text" name="phone" required placeholder="+33612345678">
+          </div>
+          <button type="submit" class="btn btn-blue btn-full">📨 Envoyer le code SMS</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <!-- Tutorial -->
+    <div class="card p-5">
+      <div class="text-sm font-semibold text-white mb-4">📖 Comment connecter un compte</div>
+      <div style="font-size:12px;color:#8a8aa0;line-height:2;">
+
+        <div class="mb-4">
+          <div style="color:#fff;font-weight:600;margin-bottom:6px;">Étape 1 — Obtenir les clés API</div>
+          <div style="display:flex;gap:6px;align-items:flex-start;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">1</span>
+            <span>Aller sur <a href="https://my.telegram.org/auth" target="_blank" style="color:#f472b6;text-decoration:underline;">my.telegram.org/auth</a></span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">2</span>
+            <span>Se connecter avec son numéro de téléphone</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">3</span>
+            <span>Cliquer sur <strong style="color:#e2e8f0;">API development tools</strong></span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">4</span>
+            <span>Créer une app (nom = ce que vous voulez)</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
+            <span style="background:#be185d;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">5</span>
+            <span>Copier l'<strong style="color:#e2e8f0;">App api_id</strong> et l'<strong style="color:#e2e8f0;">App api_hash</strong></span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div style="color:#fff;font-weight:600;margin-bottom:6px;">Étape 2 — Connecter ici</div>
+          <div style="display:flex;gap:6px;align-items:flex-start;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">1</span>
+            <span>Coller l'API ID et API Hash dans le formulaire</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">2</span>
+            <span>Entrer le numéro avec indicatif (<code>+33</code>, <code>+66</code>...)</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">3</span>
+            <span>Cliquer <strong style="color:#e2e8f0;">Envoyer le code</strong> → recevoir le code SMS</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-top:4px;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;">4</span>
+            <span>Entrer le code → <strong style="color:#4ade80;">compte connecté !</strong></span>
+          </div>
+        </div>
+
+        <div style="padding:10px 14px;background:#0c0c14;border:1px solid #2a2a40;border-radius:8px;font-size:11px;">
+          <strong style="color:#fbbf24;">💡 Astuce :</strong> Vous pouvez utiliser les mêmes clés API (api_id/hash) pour tous vos comptes si ils partagent la même app Telegram.
+        </div>
+
       </div>
-      <form method="post" action="/accounts/connect/verify" class="form-row" style="max-width:500px;">
-        <input type="hidden" name="phone" value="{{ pending_phone }}">
-        <input type="hidden" name="api_id" value="{{ pending_api_id }}">
-        <input type="hidden" name="api_hash" value="{{ pending_api_hash }}">
-        <input type="hidden" name="phone_hash" value="{{ pending_phone_hash }}">
-        <div>
-          <label>Code reçu par SMS/Telegram</label>
-          <input type="text" name="code" required autofocus placeholder="12345" style="font-size:18px;letter-spacing:4px;text-align:center;">
-        </div>
-        <button type="submit" class="btn btn-green btn-full">✅ Vérifier le code</button>
-      </form>
-    {% else %}
-      <!-- Step 1: Enter credentials -->
-      <form method="post" action="/accounts/connect/send-code" class="form-row" style="max-width:500px;">
-        <div class="grid-2">
-          <div><label>API ID</label><input type="text" name="api_id" required placeholder="2042631"></div>
-          <div><label>API Hash</label><input type="text" name="api_hash" required placeholder="bda930cae9e8b4ac..."></div>
-        </div>
-        <div>
-          <label>Numéro de téléphone (format international)</label>
-          <input type="text" name="phone" required placeholder="+33612345678">
-        </div>
-        <button type="submit" class="btn btn-blue btn-full">📨 Envoyer le code</button>
-      </form>
-      <div class="text-xs text-muted mt-2">
-        Clés API : <a href="https://my.telegram.org/apps" target="_blank" style="color:#60a5fa;">my.telegram.org/apps</a>
-      </div>
-    {% endif %}
+    </div>
+
   </div>
 
   <!-- Accounts table -->
